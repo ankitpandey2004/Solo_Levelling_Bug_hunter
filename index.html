@@ -766,7 +766,8 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
     <div class="gate-foot">
       <a id="gateReset">Forgot password?</a> · <a id="gateLocal">Use this device only</a>
     </div>
-    <div class="gate-foot" style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em">
+    <div id="gateDiag" class="mono" style="margin-top:14px;font-size:10px;line-height:1.8;color:var(--dim);border-top:1px solid var(--border);padding-top:10px"></div>
+    <div class="gate-foot" style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em">
       <span class="dot" id="gateDot"></span><span id="gateStatus">connecting…</span>
     </div>
   </div>
@@ -1641,6 +1642,11 @@ Recon notes, endpoint maps, credentials layout, ideas to revisit, dead ends wort
 <script>
 (function () {
 'use strict';
+window.addEventListener('error', function (e) {
+  window.__lastAuthErr = 'JS: ' + (e.message || '');
+  const d = document.getElementById('gateDiag');
+  if (d) d.innerHTML += '<br><span style="color:var(--crit)">JS error: ' + String(e.message).slice(0,90) + '</span>';
+});
 
 /* ============================================================
    0. KEYS, CONSTANTS
@@ -3627,7 +3633,21 @@ function emailAllowed(email){
   return list.indexOf(String(email || '').toLowerCase()) > -1;
 }
 
+function gateDiag(){
+  const el = $('#gateDiag');
+  if (!el) return;
+  const sdk = (typeof firebase !== 'undefined');
+  const auth = sdk && !!firebase.auth;
+  const gis = !!(window.google && google.accounts && google.accounts.oauth2);
+  const host = location.hostname || 'file://';
+  const ok = v => v ? '<span style="color:var(--ok)">OK</span>' : '<span style="color:var(--crit)">FAIL</span>';
+  el.innerHTML =
+    'firebase sdk ' + ok(sdk) + ' · auth ' + ok(auth) + ' · google ' + ok(gis) + '<br>' +
+    'host ' + esc(host) + ' · project ' + esc(fbConfig().projectId || '—') +
+    (window.__lastAuthErr ? '<br><span style="color:var(--crit)">last error: ' + esc(window.__lastAuthErr) + '</span>' : '');
+}
 function gateShow(){
+  setTimeout(gateDiag, 50);
   document.body.classList.add('gated');
   const g = $('#authGate');
   if (g) { g.style.display = ''; g.classList.add('show'); }
@@ -3677,6 +3697,8 @@ function gateSubmit(){
         'auth/operation-not-allowed':'Email/Password is not enabled in the Firebase console yet.',
         'auth/unauthorized-domain':'This domain is not in the Firebase authorized domains list.'
       };
+      window.__lastAuthErr = code || (err && err.message) || 'unknown';
+      gateDiag();
       gateError(map[code] || (err && err.message) || 'Sign-in failed.');
       gateStatus('sign-in failed', false);
     });
@@ -3698,7 +3720,9 @@ function gateGoogle(){
     })
     .catch(err => {
       const c = (err && err.code) || '';
-      if (c === 'auth/operation-not-allowed') gateError('Enable Google sign-in in Firebase → Authentication → Sign-in method.');
+      window.__lastAuthErr = c || 'google-failed';
+      gateDiag();
+      if (c === 'auth/operation-not-allowed') gateError('Enable Google sign-in in Firebase → Authentication → Sign-in method → Google → Enable.');
       else if (c === 'auth/popup-blocked') gateError('Your browser blocked the popup — allow popups and retry.');
       else if (c !== 'auth/popup-closed-by-user') gateError((err && err.message) || 'Google sign-in failed.');
     });
@@ -5451,6 +5475,7 @@ window.addEventListener('resize', () => {
   navigate('dashboard');
   updateSizeHint();
   localStorage.removeItem('sl_gate_mode');
+  gateDiag();
   setSyncPill();
   setInterval(() => {
     if (fbUser && document.body.classList.contains('gated')) gateHide();
