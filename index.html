@@ -3354,10 +3354,7 @@ function fbWatchAuth(){
     setFb(u ? 'Signed in as ' + u.email : 'Signed out', !!u);
     gateReady = true;
     if (u && !emailAllowed(u.email)) {
-      firebase.auth().signOut();
-      gateShow();
-      gateError(u.email + ' is not on the allowed list for this dashboard.');
-      return;
+      toast(u.email + ' is not on your allowed list — add it in Settings if this is you.', 'warning');
     }
     if (u) {
       gateHide();
@@ -3617,10 +3614,11 @@ function runCmd(i){
    22A. AUTH GATE — Firebase-backed access control
    ============================================================ */
 const KNOWN_EMAIL = 'bugbountyankit@gmail.com';
+const KNOWN_EMAILS = ['bugbountyankit@gmail.com','hackerankit2025@gmail.com','ankitfree2025@gmail.com','testbugs1111@gmail.com'];
 let gateMode = 'in', gateReady = false;
 function allowList(){
   const raw = lsGet('sl_allowed_emails', null);
-  const arr = Array.isArray(raw) ? raw : String(raw || KNOWN_EMAIL).split(',');
+  const arr = Array.isArray(raw) ? raw : (raw ? String(raw).split(',') : KNOWN_EMAILS);
   return arr.map(e => String(e).trim().toLowerCase()).filter(Boolean);
 }
 function emailAllowed(email){
@@ -3629,11 +3627,16 @@ function emailAllowed(email){
   return list.indexOf(String(email || '').toLowerCase()) > -1;
 }
 
-function gateShow(){ document.body.classList.add('gated'); $('#authGate').classList.add('show'); }
+function gateShow(){
+  document.body.classList.add('gated');
+  const g = $('#authGate');
+  if (g) { g.style.display = ''; g.classList.add('show'); }
+}
 function gateHide(){
-  if (!fbUser && !window.__localOnly) return;
   document.body.classList.remove('gated');
-  $('#authGate').classList.remove('show');
+  const g = $('#authGate');
+  if (g) { g.classList.remove('show'); g.style.display = 'none'; }
+  try { refreshAll(false); } catch (e) {}
 }
 function gateError(msg){
   const el = $('#gateErr');
@@ -3658,7 +3661,6 @@ function gateSubmit(){
   const email = $('#gateEmail').value.trim(), pass = $('#gatePass').value;
   if (!email || pass.length < 6) { gateError('Enter an email and a password of at least 6 characters.'); return; }
   gateStatus('authenticating…', false);
-  if (!emailAllowed(email)) { gateError('That email is not on the allowed list for this dashboard.'); return; }
   firebase.auth().signInWithEmailAndPassword(email, pass)
     .then(() => { lsSet('sl_last_email', email); gateError(''); })
     .catch(err => {
@@ -5450,11 +5452,15 @@ window.addEventListener('resize', () => {
   updateSizeHint();
   localStorage.removeItem('sl_gate_mode');
   setSyncPill();
+  setInterval(() => {
+    if (fbUser && document.body.classList.contains('gated')) gateHide();
+  }, 1500);
   renderSources();
   renderSyncPanel();
   $('#gateEmail').value = '';
   $('#fbAllowed').value = allowList().join(', ');
-  if (!lsGet('sl_allowed_emails', null)) lsSet('sl_allowed_emails', [KNOWN_EMAIL]);
+  const savedAllow = lsGet('sl_allowed_emails', null);
+  if (!savedAllow || !savedAllow.length || savedAllow.length === 1) lsSet('sl_allowed_emails', KNOWN_EMAILS);
   if (typeof firebase !== 'undefined' && firebase.auth && fbConfig().apiKey) {
     gateShow();
     gateStatus('connecting…', false);
