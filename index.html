@@ -2457,35 +2457,6 @@ function checkAchievements(announce){
   });
   $('#navAch').textContent = Object.keys(achState).length;
 }
-function renderAchievements(){
-  const unlocked = ACHIEVEMENTS.filter(a => achState[a.id]).length;
-  $('#achMeta').textContent = unlocked + ' / ' + ACHIEVEMENTS.length + ' unlocked';
-  $('#achGrid').innerHTML = ACHIEVEMENTS.map(a => {
-    const v = a.val(), on = !!achState[a.id];
-    const pct = Math.min(100, (v / a.goal) * 100);
-    return '<article class="ach' + (on ? ' unlocked' : '') + '">' +
-      '<div class="ai">' + a.icon + '</div><div style="flex:1;min-width:0">' +
-      '<h5>' + esc(a.name) + '</h5><p>' + esc(a.desc) + '</p>' +
-      '<div class="prog-track"><div class="prog-fill" style="width:' + pct + '%"></div></div>' +
-      '<div class="mono" style="font-size:10px;color:var(--dim);margin-top:5px">' +
-        Math.min(v, a.goal).toLocaleString() + ' / ' + a.goal.toLocaleString() + '</div></div>' +
-      (on ? '<span class="stamp">CLEARED</span>' : '') + '</article>';
-  }).join('');
-
-  const xp = totalXP();
-  $('#roadMeta').textContent = xp.toLocaleString() + ' XP total';
-  $('#roadmap').innerHTML = RANKS.map(r => {
-    const reached = xp >= r.min;
-    const pct = r.max === Infinity ? (reached ? 100 : 0)
-      : Math.max(0, Math.min(100, ((xp - r.min) / (r.max - r.min)) * 100));
-    return '<div class="quest' + (reached ? ' done' : '') + '">' +
-      '<div class="qi">' + r.r + '</div>' +
-      '<div class="qt"><b>' + r.r + '-Rank · ' + esc(r.title) + '</b>' +
-      '<span>' + r.min.toLocaleString() + (r.max === Infinity ? '+' : ' – ' + r.max.toLocaleString()) + ' XP</span>' +
-      '<div class="prog-track" style="margin-top:6px"><div class="prog-fill" style="width:' + pct + '%"></div></div></div>' +
-      '<div class="qr">' + (reached ? 'REACHED' : Math.max(0, r.min - xp).toLocaleString() + ' XP to go') + '</div></div>';
-  }).join('');
-}
 
 /* ============================================================
    13. CHART DATA
