@@ -497,6 +497,20 @@ td.mono,th.mono{font-family:'JetBrains Mono',monospace}
 .cmdk-item .ci{width:20px;text-align:center}
 .cmdk-item .cl{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cmdk-item .cs{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em}
+.cmdk-group{padding:9px 18px 5px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--dim);background:var(--panel2);border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:8px}
+.cmdk-group span{margin-left:auto;color:var(--cy)}
+.cmdk-item{align-items:flex-start}
+.cmdk-item .cbody{flex:1;min-width:0}
+.cmdk-item .cl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmdk-snip{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmdk-list mark{background:color-mix(in srgb,var(--cy) 28%,transparent);color:var(--cy);
+  padding:0 2px;border-radius:2px;font-weight:600}
+.cmdk-empty{padding:28px 18px;text-align:center;color:var(--muted);font-size:13.5px}
+.cmdk-box input{width:100%}
+.cmdk-hint{padding:0 18px 10px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)}
 .cmdk-foot{padding:9px 18px;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;
   font-size:10px;color:var(--dim);display:flex;gap:14px;flex-wrap:wrap}
 
@@ -548,6 +562,87 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
 .gate-err{border-left:2px solid var(--crit);background:color-mix(in srgb,var(--crit) 10%,transparent);
   padding:9px 11px;font-size:12.5px;color:var(--crit);margin-bottom:14px;display:none}
 .gate-err.show{display:block}
+
+.meter{height:6px;background:var(--void);border:1px solid var(--border);margin-top:6px}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--crit),var(--med),var(--ok));transition:width .4s}
+.timer-pill{display:flex;align-items:center;gap:7px;padding:0 11px;height:38px;border:1px solid var(--border);
+  background:var(--panel);font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted)}
+.timer-pill.run{border-color:var(--ok);color:var(--ok);box-shadow:0 0 14px rgba(53,224,143,.25)}
+.asset{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--border);
+  background:var(--panel2);margin-bottom:6px;font-family:'JetBrains Mono',monospace;font-size:12px}
+.asset .ah{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.asset select{width:auto;padding:3px 7px;font-size:11px}
+.a-untested{border-left:2px solid var(--dim)}.a-testing{border-left:2px solid var(--med)}
+.a-done{border-left:2px solid var(--ok)}.a-dead{border-left:2px solid var(--crit);opacity:.5}
+.nudge{display:flex;gap:11px;align-items:center;padding:10px 12px;border:1px solid var(--border);
+  border-left:2px solid var(--warn);background:var(--panel2);margin-bottom:8px;font-size:13.5px}
+.nudge b{font-family:'Chakra Petch',sans-serif}
+.locked{filter:blur(4px);user-select:none}
+/* ============================================================
+   NOTEBOOK — full page per-program notes
+   ============================================================ */
+.nb{display:grid;grid-template-columns:260px 1fr;gap:14px;align-items:start}
+.nb-side{background:var(--panel);border:1px solid var(--border);max-height:78vh;overflow-y:auto;position:sticky;top:78px}
+.nb-side-head{padding:12px 14px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.nb-item{display:flex;align-items:center;gap:9px;width:100%;text-align:left;cursor:pointer;padding:11px 13px;
+  background:none;border:none;border-bottom:1px solid var(--border);color:var(--muted);
+  font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;transition:.14s}
+.nb-item:hover{background:var(--panel2);color:var(--text)}
+.nb-item.active{background:var(--panel2);color:var(--text);box-shadow:inset 2px 0 0 var(--cy)}
+.nb-item .nn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.nb-item .nc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim)}
+.nb-main{background:var(--panel);border:1px solid var(--border);position:relative}
+.nb-main::before,.nb-main::after{content:"";position:absolute;width:14px;height:14px;border:2px solid var(--cy)}
+.nb-main::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.nb-main::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.nb-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--border);
+  background:linear-gradient(90deg,var(--panel2),transparent)}
+.nb-head h3{font-size:17px;letter-spacing:.05em}
+.nb-head .nbmeta{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)}
+.nb-doc{width:100%;min-height:56vh;border:none;background:transparent;padding:20px;resize:vertical;
+  font-family:'JetBrains Mono',monospace;font-size:13.5px;line-height:1.85;color:var(--text)}
+.nb-doc:focus{outline:none;box-shadow:none}
+.nb-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:11px 18px;border-top:1px solid var(--border);
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)}
+.nb-log{padding:18px;border-top:1px solid var(--border)}
+@media(max-width:900px){.nb{grid-template-columns:1fr}.nb-side{position:static;max-height:230px}}
+
+/* ============================================================
+   RANK EMBLEMS
+   ============================================================ */
+.rank-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.rank-tile{position:relative;text-align:center;padding:20px 14px;background:var(--panel);border:1px solid var(--border);
+  transition:.2s;opacity:.4;filter:grayscale(.85)}
+.rank-tile.reached{opacity:1;filter:none}
+.rank-tile.current{border-color:var(--cy);box-shadow:0 0 34px var(--glow)}
+.rank-tile:hover{transform:translateY(-3px)}
+.rank-tile svg{width:100%;max-width:132px;height:auto;display:block;margin:0 auto 12px}
+.rank-tile .rl{font-family:'Chakra Petch',sans-serif;font-size:19px;font-weight:700;letter-spacing:.12em}
+.rank-tile .rt{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--muted);margin-top:3px}
+.rank-tile .rx{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-top:7px}
+.rank-tile .now{position:absolute;top:9px;right:10px;font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:.14em;color:var(--cy)}
+.rank-hero{display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+.rank-hero svg{width:172px;height:auto;flex:0 0 auto;filter:drop-shadow(0 0 26px var(--glow))}
+.rank-hero .rh{flex:1;min-width:210px}
+.rank-hero .rh h2{font-family:'Chakra Petch',sans-serif;font-size:32px;letter-spacing:.1em;text-transform:uppercase}
+.rank-hero .rh p{color:var(--muted);margin-top:5px}
+
+/* ============================================================
+   ACHIEVEMENTS v2
+   ============================================================ */
+.ach-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px}
+.ach-cat{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--dim);margin:22px 0 11px;display:flex;align-items:center;gap:9px}
+.ach-cat::after{content:"";flex:1;height:1px;background:var(--border)}
+.tier{position:absolute;top:9px;right:11px;font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:.13em;text-transform:uppercase}
+.t-bronze{color:#c8834a} .t-silver{color:#b6c2d6} .t-gold{color:var(--gold)} .t-legendary{color:var(--vi)}
+.ach.unlocked.tl-legendary{border-color:color-mix(in srgb,var(--vi) 55%,var(--border));
+  box-shadow:0 0 24px color-mix(in srgb,var(--vi) 22%,transparent)}
+.ach-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 
 /* ============================================================
    RADAR
@@ -631,14 +726,12 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
   <div class="gate-box">
     <div class="gate-logo">ARISE</div>
     <div class="gate-sub">HUNTER SYSTEM · ACCESS CONTROL</div>
-    <div class="gate-tabs">
-      <button class="gate-tab active" data-gtab="in">Sign in</button>
-      <button class="gate-tab" data-gtab="up">Create account</button>
-    </div>
+    <div class="gate-tabs"><button class="gate-tab active" data-gtab="in">Sign in</button></div>
     <div class="gate-err" id="gateErr"></div>
     <div class="field"><label>Email</label><input type="email" id="gateEmail" autocomplete="username" placeholder="you@example.com"></div>
     <div class="field"><label>Password</label><input type="password" id="gatePass" autocomplete="current-password" placeholder="your password"></div>
     <button class="btn btn-primary btn-block" id="gateGo" style="width:100%;justify-content:center">Enter the gate</button>
+    <div class="gate-foot" style="margin-top:10px;font-size:11.5px">Accounts are created by you in the Firebase console. This page only signs in.</div>
     <div class="gate-alt">OR</div>
     <button class="btn btn-block" id="gateGoogle" style="width:100%;justify-content:center">Continue with Google</button>
     <div class="gate-foot">
@@ -672,11 +765,13 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
 
   <nav class="nav">
     <div class="nav-sec">Command</div>
+    <button class="nav-item" id="navSearchBtn"><span class="ico">⌕</span>Search everything<span class="tag">Ctrl K</span></button>
     <button class="nav-item active" data-page="dashboard"><span class="ico">◈</span>Dashboard</button>
     <button class="nav-item" data-page="reports"><span class="ico">🐞</span>Bug Reports<span class="tag" id="navReports">0</span></button>
     <button class="nav-item" data-page="kanban"><span class="ico">▤</span>Kanban Board</button>
     <div class="nav-sec">Hunt</div>
     <button class="nav-item" data-page="targets"><span class="ico">◎</span>Targets<span class="tag" id="navTargets">0</span></button>
+    <button class="nav-item" data-page="notes"><span class="ico">✎</span>Notebook<span class="tag" id="navNotes">0</span></button>
     <button class="nav-item" data-page="radar"><span class="ico">📡</span>Program Radar<span class="tag" id="navRadar">0</span></button>
     <button class="nav-item" data-page="hof"><span class="ico">🏆</span>Hall of Fame<span class="tag" id="navHof">0</span></button>
     <button class="nav-item" data-page="achievements"><span class="ico">✦</span>Achievements<span class="tag" id="navAch">0</span></button>
@@ -696,6 +791,7 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
   <header class="header">
     <button class="icon-btn" id="menuToggle" aria-label="Toggle navigation">☰</button>
     <h1 class="page-title" id="pageTitle">Dashboard</h1>
+    <button class="timer-pill" id="timerPill" title="Hunt timer"><span>⏱</span><span id="timerTxt">00:00</span></button>
     <button class="kbd-btn" id="cmdkBtn"><span>⌕ Search</span><span class="kbd">Ctrl K</span></button>
     <span class="kbd-btn" id="syncPill" title="Cloud sync status" style="cursor:default"><span class="dot" id="syncDot"></span><span id="syncText" class="hide-sm">local</span></span>
     <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">🌙</button>
@@ -719,6 +815,7 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
           <div class="hstat"><div class="v" id="heroStreak">0</div><div class="l">Day Streak</div></div>
           <div class="hstat"><div class="v" id="heroRate">0%</div><div class="l">Accept Rate</div></div>
           <div class="hstat"><div class="v" id="heroAvg">$0</div><div class="l">Avg Bounty</div></div>
+          <div class="hstat"><div class="v" id="heroGoal">—</div><div class="l">Monthly Goal</div><div class="meter" style="margin-top:7px"><i id="goalBar" style="width:0"></i></div></div>
         </div>
       </div>
     </div>
@@ -754,6 +851,7 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
 
     <div class="chart-grid">
       <div class="sys"><div class="sys-head"><h3>Daily Quests</h3><span class="meta" id="questDate"></span></div><div id="questList"></div></div>
+      <div class="sys"><div class="sys-head"><h3>Needs Chasing</h3><span class="meta" id="nudgeMeta"></span></div><div id="nudgeList"></div></div>
       <div class="sys"><div class="sys-head"><h3>Recent Activity</h3></div><div id="activityFeed"></div></div>
     </div>
   </section>
@@ -793,6 +891,42 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
     <div class="sys">
       <div class="sys-head"><h3>Target Programs</h3><button class="btn btn-primary btn-sm" id="addTargetBtn">+ Add target</button></div>
       <div class="cards" id="targetGrid"></div>
+    </div>
+  </section>
+
+  <!-- ==================== NOTEBOOK ==================== -->
+  <section class="page" id="page-notes">
+    <div class="sys" style="margin-bottom:14px">
+      <div class="sys-head"><h3>Notebook</h3><span class="meta" id="nbGlobalMeta"></span></div>
+      <div class="filters" style="margin-bottom:0">
+        <input type="search" id="nbSearch" placeholder="Search across every program's notes…">
+        <select id="nbJump"><option value="">Jump to program…</option></select>
+        <button class="btn btn-sm" id="nbExportBtn">⬇ Export this program</button>
+        <button class="btn btn-sm" id="nbExportAllBtn">⬇ Export all notes</button>
+      </div>
+      <div id="nbResults"></div>
+    </div>
+
+    <div class="nb">
+      <div class="nb-side">
+        <div class="nb-side-head">Programs</div>
+        <div id="nbList"></div>
+      </div>
+      <div class="nb-main">
+        <div class="nb-head">
+          <h3 id="nbTitle">Select a program</h3>
+          <span class="badge b-new" id="nbPlat" style="display:none"></span>
+          <span class="nbmeta" id="nbSaved">—</span>
+        </div>
+        <textarea class="nb-doc" id="nbDoc" placeholder="Pick a program on the left, then write freely.
+
+Recon notes, endpoint maps, credentials layout, ideas to revisit, dead ends worth remembering — as many lines as you want. Saves itself as you type."></textarea>
+        <div class="nb-foot">
+          <span id="nbCount">0 words · 0 lines</span>
+          <span style="margin-left:auto"><button class="btn btn-sm" id="nbLogBtn">＋ Add timestamped entry</button></span>
+        </div>
+        <div class="nb-log" id="nbLog"></div>
+      </div>
     </div>
   </section>
 
@@ -842,13 +976,26 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
 
   <!-- ==================== ACHIEVEMENTS ==================== -->
   <section class="page" id="page-achievements">
-    <div class="sys gold">
-      <div class="sys-head"><h3>Achievements</h3><span class="meta" id="achMeta">0 / 0 unlocked</span></div>
-      <div class="cards" id="achGrid"></div>
+    <div class="sys" style="margin-bottom:14px">
+      <div class="sys-head"><h3>Current Rank</h3><span class="meta" id="rankMeta"></span></div>
+      <div class="rank-hero" id="rankHero"></div>
     </div>
+
     <div class="sys vi">
-      <div class="sys-head"><h3>Rank Roadmap</h3><span class="meta" id="roadMeta"></span></div>
-      <div id="roadmap"></div>
+      <div class="sys-head"><h3>Rank Ladder</h3><span class="meta" id="roadMeta"></span></div>
+      <div class="rank-gallery" id="rankGallery"></div>
+      <div style="margin-top:20px" id="roadmap"></div>
+    </div>
+
+    <div class="sys gold">
+      <div class="sys-head"><h3>Achievements</h3><span class="meta" id="achMeta">0 / 0</span></div>
+      <div class="ach-bar" id="achBar"></div>
+      <div class="ach-filter">
+        <button class="btn btn-sm active" data-afilter="all">All</button>
+        <button class="btn btn-sm" data-afilter="unlocked">Unlocked</button>
+        <button class="btn btn-sm" data-afilter="locked">Locked</button>
+      </div>
+      <div id="achGrid"></div>
     </div>
   </section>
 
@@ -861,6 +1008,9 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
     <div class="sys"><div class="sys-head"><h3>Monthly Breakdown</h3></div><div class="table-wrap"><table id="monthlyTable"></table></div></div>
     <div class="sys"><div class="sys-head"><h3>Yearly Breakdown</h3></div><div class="table-wrap"><table id="yearlyTable"></table></div></div>
     <div class="sys"><div class="sys-head"><h3>Program Performance</h3></div><div class="table-wrap"><table id="programTable"></table></div></div>
+    <div class="sys vi"><div class="sys-head"><h3>Value of Your Time</h3><span class="meta">bounty per hour, per program</span></div><div class="table-wrap"><table id="ephTable"></table></div></div>
+    <div class="sys"><div class="sys-head"><h3>Win Rate by Vulnerability Class</h3></div><div class="table-wrap"><table id="classTable"></table></div></div>
+    <div class="sys"><div class="sys-head"><h3>Response Times</h3><span class="meta">days from report to triage, resolve and payout</span></div><div class="table-wrap"><table id="respTable"></table></div></div>
   </section>
 
   <!-- ==================== TOOLS ==================== -->
@@ -973,6 +1123,7 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
         <div class="field"><label>Bugcrowd</label><input id="pfBc"></div>
       </div>
       <div class="field"><label>Bio / tagline</label><textarea id="pfBio" rows="2" placeholder="Arise."></textarea></div>
+      <div class="field" style="max-width:260px"><label>Monthly bounty goal ($)</label><input type="number" id="pfGoal" min="0" step="50" placeholder="1000"></div>
       <button class="btn btn-primary" id="saveProfileBtn">Save profile</button>
     </div>
 
@@ -1008,6 +1159,66 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
         <div class="kv"><span class="kk">Firebase</span><span id="sFb">—</span></div>
         <div class="kv"><span class="kk">Vault file</span><span id="sVault">—</span></div>
         <div class="kv"><span class="kk">Google Drive</span><span id="sDrive">—</span></div>
+      </div>
+    </div>
+
+    <div class="sys vi">
+      <div class="sys-head"><h3>Inbox Scanner</h3><span class="meta" id="gmMeta">not connected</span></div>
+      <div class="note">
+        Reads your bug bounty mail with Gmail's <b>read-only</b> API and turns platform replies into dashboard updates —
+        triaged, resolved, duplicate, informative, and bounty amounts. Nothing is sent, deleted, or modified in your mailbox.
+        <br><b>Setup:</b> Google Cloud Console → enable <b>Gmail API</b> → OAuth consent screen → add your three addresses as
+        <b>test users</b> → reuse the same client ID as Drive below. Scan one account at a time; use Switch account for the others.
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Mailboxes to scan</label><input id="gmAccounts" placeholder="a@gmail.com, b@gmail.com"></div>
+        <div class="field"><label>Look back</label><select id="gmDays"><option value="30">30 days</option><option value="60" selected>60 days</option><option value="120">120 days</option><option value="365">1 year</option></select></div>
+      </div>
+      <div class="btn-row" style="margin-bottom:12px">
+        <button class="btn btn-primary" id="gmConnect">🔗 Connect Gmail</button>
+        <button class="btn" id="gmScan">📥 Scan inbox now</button>
+        <button class="btn" id="gmSwitch">↻ Switch account</button>
+        <label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="gmAuto" style="width:auto"> Scan on every load</label>
+        <label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="gmApply" style="width:auto"> Apply matches automatically</label>
+      </div>
+      <div class="mono" style="font-size:12px;color:var(--muted)"><span class="dot" id="gmDot"></span><span id="gmStatus">Gmail not connected</span></div>
+      <div id="gmResults" style="margin-top:14px"></div>
+    </div>
+
+    <div class="sys gold">
+      <div class="sys-head"><h3>Notifications</h3><span class="meta" id="notifMeta"></span></div>
+      <div class="note">Telegram and Discord accept requests straight from this page, so they work with no server. Email needs a relay — point the generic webhook at a Zapier / Make / IFTTT hook set to send you mail.</div>
+      <div class="grid2">
+        <div class="field"><label>Telegram bot token</label><input id="nTgToken" placeholder="123456:ABC-DEF…"></div>
+        <div class="field"><label>Telegram chat ID</label><input id="nTgChat" placeholder="987654321"></div>
+        <div class="field"><label>Discord webhook URL</label><input id="nDiscord" placeholder="https://discord.com/api/webhooks/…"></div>
+        <div class="field"><label>Generic webhook (email relay)</label><input id="nHook" placeholder="https://hooks.zapier.com/…"></div>
+        <div class="field"><label>Notification email</label><input type="email" id="nEmail" placeholder="bugbountyankit@gmail.com"></div>
+      </div>
+      <label>Send me a ping when…</label>
+      <div class="btn-row" style="margin-bottom:14px">
+        <label style="display:flex;gap:7px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)"><input type="checkbox" id="nAccepted" style="width:auto" checked> Report accepted</label>
+        <label style="display:flex;gap:7px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)"><input type="checkbox" id="nPaid" style="width:auto" checked> Bounty paid</label>
+        <label style="display:flex;gap:7px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)"><input type="checkbox" id="nCrit" style="width:auto" checked> Critical logged</label>
+        <label style="display:flex;gap:7px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)"><input type="checkbox" id="nStale" style="width:auto" checked> Report goes stale</label>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="nSave">Save channels</button>
+        <button class="btn" id="nTest">Send test ping</button>
+        <button class="btn" id="nDigest">✉ Email me a digest</button>
+      </div>
+      <div class="hint" id="nOut"></div>
+    </div>
+
+    <div class="sys">
+      <div class="sys-head"><h3>Private Note Encryption</h3><span class="meta" id="lockMeta">unlocked</span></div>
+      <div class="note">Encrypts the <b>private notes</b> field of every report with AES-GCM before it ever reaches Firebase or Drive. Your passphrase never leaves this device and is not recoverable — lose it and those notes are gone.</div>
+      <div class="grid2">
+        <div class="field"><label>Passphrase</label><input type="password" id="lockPass" placeholder="at least 8 characters"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-danger" id="lockBtn">🔒 Encrypt private notes</button>
+        <button class="btn" id="unlockBtn">🔓 Decrypt for this session</button>
       </div>
     </div>
 
@@ -1071,13 +1282,19 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
         <button class="btn" id="fbTestBtn">Test connection</button>
       </div>
 
-      <label>Account — this is what makes your portfolio follow you across devices</label>
+      <div class="field">
+        <label>Allowed emails — only these can enter this dashboard</label>
+        <input id="fbAllowed" placeholder="you@gmail.com, second@gmail.com">
+        <div class="hint">Comma separated. Applies to both password and Google sign-in. Leave empty to allow any account in your Firebase project.</div>
+      </div>
+      <button class="btn btn-sm" id="fbAllowSave" style="margin-bottom:16px">Save allowed emails</button>
+
+      <label>Account — sign in only. Create accounts in the Firebase console.</label>
       <div class="grid2">
         <div class="field"><label>Email</label><input type="email" id="fbEmail" placeholder="you@example.com"></div>
         <div class="field"><label>Password</label><input type="password" id="fbPassword" placeholder="min 6 characters"></div>
       </div>
       <div class="btn-row" style="margin-bottom:14px">
-        <button class="btn" id="fbSignUpBtn">Create account</button>
         <button class="btn btn-primary" id="fbSignInBtn">Sign in</button>
         <button class="btn btn-danger" id="fbSignOutBtn">Sign out</button>
       </div>
@@ -1116,9 +1333,11 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
     <div class="modal-head">
       <h3 id="reportModalTitle">New Bug Report</h3>
       <span class="badge b-new mono" id="dupWarn" style="display:none">possible duplicate</span>
+      <span class="mono" style="font-size:11px;color:var(--muted)" id="scoreTxt">0%</span>
       <button class="icon-btn" data-close="reportModal">✕</button>
     </div>
     <div class="modal-body">
+      <div class="meter" style="margin:-20px -20px 14px"><i id="scoreBar" style="width:0"></i></div>
       <div class="tabs">
         <button class="tab active" data-tab="core">Core</button>
         <button class="tab" data-tab="detail">Write-up</button>
@@ -1139,6 +1358,10 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
             <div class="field"><label>Bug ID / reference</label><input id="fRef" placeholder="H1-1928374"></div>
             <div class="field"><label>Reported to email</label><input type="email" id="fEmail"></div>
             <div class="field"><label>Date reported</label><input type="date" id="fDate"></div>
+          <div class="field"><label>Triaged on</label><input type="date" id="fTriaged"></div>
+          <div class="field"><label>Resolved on</label><input type="date" id="fResolved"></div>
+          <div class="field"><label>Paid on</label><input type="date" id="fPaid"></div>
+          <div class="field"><label>Hours spent</label><input type="number" id="fHours" min="0" step="0.25" value="0"></div>
           </div>
           <div class="field"><label>Tags (comma separated)</label><input id="fTags" placeholder="p1, chained, auth"></div>
         </div>
@@ -1213,6 +1436,7 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
       <div class="tabs">
         <button class="tab active" data-wtab="notes">Notes</button>
         <button class="tab" data-wtab="scope">Scope</button>
+        <button class="tab" data-wtab="assets">Assets</button>
         <button class="tab" data-wtab="findings">Findings</button>
       </div>
       <div class="tabpane active" data-wpane="notes">
@@ -1231,10 +1455,17 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
         <div class="field"><label>Summary notes</label><textarea id="wSummary" rows="4"></textarea></div>
         <button class="btn btn-primary btn-sm" id="wSaveScope">Save scope</button>
       </div>
+      <div class="tabpane" data-wpane="assets">
+        <div class="field"><label>Add assets — hosts, or paste subfinder / httpx / nuclei JSON output</label><textarea id="wAssetIn" rows="3" placeholder="api.alpha.com&#10;{&quot;host&quot;:&quot;admin.alpha.com&quot;}"></textarea></div>
+        <div class="btn-row" style="margin-bottom:14px"><button class="btn btn-primary btn-sm" id="wAssetAdd">＋ Add</button>
+        <span class="mono" style="font-size:11px;color:var(--dim);align-self:center" id="wAssetMeta"></span></div>
+        <div id="wAssetList"></div>
+      </div>
       <div class="tabpane" data-wpane="findings"><div id="wFindings"></div></div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close="workModal">Close</button>
+      <button class="btn" id="wTimer">⏱ Start hunt timer</button>
       <button class="btn" id="wNewReport">+ Report against this target</button>
     </div>
   </div>
@@ -1327,7 +1558,8 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
 <!-- ==================== COMMAND PALETTE ==================== -->
 <div class="cmdk" id="cmdk">
   <div class="cmdk-box">
-    <input id="cmdkInput" placeholder="Jump to a page, search reports, run a command…" autocomplete="off">
+    <input id="cmdkInput" placeholder="Search reports, notes, targets, recognitions, radar, commands…" autocomplete="off">
+    <div class="cmdk-hint" id="cmdkHint">Type at least 2 characters to search every page at once.</div>
     <div class="cmdk-list" id="cmdkList"></div>
     <div class="cmdk-foot"><span>↑↓ navigate</span><span>⏎ select</span><span>esc close</span></div>
   </div>
@@ -1635,6 +1867,7 @@ function migrate(r){
     bounty: Number(r.bounty) || 0,
     cvss: (r.cvss === 0 || r.cvss) ? r.cvss : '',
     cwe: r.cwe || '', ref: r.ref || '', email: r.email || '',
+    triagedAt: r.triagedAt || '', resolvedAt: r.resolvedAt || '', paidAt: r.paidAt || '', hours: Number(r.hours) || 0,
     drive: r.drive || '', poc: r.poc || '',
     description: r.description || '', steps: r.steps || '', impact: r.impact || '',
     fix: r.fix || '', notes: r.notes || '',
@@ -1653,6 +1886,10 @@ function migrateTarget(t){
     priority: ['High','Medium','Low'].indexOf(t.priority) > -1 ? t.priority : 'Medium',
     state: ['Active','Paused','Archived'].indexOf(t.state) > -1 ? t.state : 'Active',
     noteLog: Array.isArray(t.noteLog) ? t.noteLog : [],
+    assets: Array.isArray(t.assets) ? t.assets : [],
+    sessions: Array.isArray(t.sessions) ? t.sessions : [],
+    doc: typeof t.doc === 'string' ? t.doc : '',
+    docAt: t.docAt || '',
     added: t.added || new Date().toISOString()
   };
 }
@@ -1763,7 +2000,7 @@ function renderRank(){
 /* ============================================================
    6. NAVIGATION
    ============================================================ */
-const TITLES = {dashboard:'Dashboard', reports:'Bug Reports', kanban:'Kanban Board', targets:'Targets', radar:'Program Radar',
+const TITLES = {dashboard:'Dashboard', reports:'Bug Reports', kanban:'Kanban Board', targets:'Targets', notes:'Notebook', radar:'Program Radar',
   hof:'Hall of Fame', achievements:'Achievements', analytics:'Analytics', tools:'Tools', settings:'Settings'};
 function navigate(page){
   currentPage = page;
@@ -1778,6 +2015,7 @@ function navigate(page){
   if (page === 'dashboard' || page === 'analytics') renderCharts();
   if (page === 'kanban') renderKanban();
   if (page === 'radar') renderRadar();
+  if (page === 'notes') renderNotebook();
   if (page === 'achievements') renderAchievements();
 }
 
@@ -1830,6 +2068,7 @@ function renderDashboard(){
     g.appendChild(b);
   });
 
+  renderGoal();
   renderHeatmap();
   renderQuests();
   renderActivity();
@@ -2025,7 +2264,7 @@ function renderTargets(){
       (url ? '<p><a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url.replace(/^https?:\/\//,'')) + '</a></p>' : '') +
       (t.notes ? '<p>' + esc(t.notes) + '</p>' : '') +
       '<div class="nums"><span><b>' + rs.length + '</b>reports</span><span><b class="money">' + fmtMoney(sumBounty(rs)) + '</b>earned</span>' +
-      '<span><b>' + notes + '</b>notes</span></div>' +
+      '<span><b>' + targetHours(t).toFixed(1) + '</b>hrs</span>' + '<span><b>' + notes + '</b>notes</span></div>' +
       '<div class="btn-row" style="margin-top:13px">' +
         '<button class="btn btn-sm btn-primary" data-work-target="' + esc(t.id) + '">✎ Notes' + (notes ? ' (' + notes + ')' : '') + '</button>' +
         '<button class="btn btn-sm" data-edit-target="' + esc(t.id) + '">Edit</button>' +
@@ -2399,8 +2638,12 @@ function renderAttachments(){
 function addFiles(files){
   Array.prototype.forEach.call(files, f => {
     if (f.size > 8 * 1024 * 1024) { toast(f.name + ' is over 8 MB — link it from Drive instead.', 'warning'); return; }
+    if (f.type.indexOf('image/') === 0) {
+      compressImage(f, data => { pendingAttachments.push({name:f.name, type:'image/jpeg', size:data.length, data:data}); renderAttachments(); scoreReport(); });
+      return;
+    }
     const fr = new FileReader();
-    fr.onload = e => { pendingAttachments.push({name:f.name, type:f.type, size:f.size, data:e.target.result}); renderAttachments(); };
+    fr.onload = e => { pendingAttachments.push({name:f.name, type:f.type, size:f.size, data:e.target.result}); renderAttachments(); scoreReport(); };
     fr.readAsDataURL(f);
   });
 }
@@ -2434,6 +2677,8 @@ function openReportModal(id, preset){
   $('#fRef').value = f ? f.ref : '';
   $('#fEmail').value = f ? f.email : '';
   $('#fDate').value = f ? f.date : todayISO();
+  $('#fTriaged').value = f ? f.triagedAt : ''; $('#fResolved').value = f ? f.resolvedAt : '';
+  $('#fPaid').value = f ? f.paidAt : ''; $('#fHours').value = f ? f.hours : 0;
   $('#fDrive').value = f ? f.drive : '';
   $('#fPoc').value = f ? f.poc : '';
   $('#fDesc').value = f ? f.description : (p.description || '');
@@ -2445,6 +2690,7 @@ function openReportModal(id, preset){
   pendingAttachments = f ? (f.attachments || []).slice() : [];
   renderAttachments();
   switchTab('core');
+  scoreReport();
   $('#dupWarn').style.display = 'none';
   openModal('reportModal');
   setTimeout(() => $('#fTitle').focus(), 60);
@@ -2466,17 +2712,26 @@ function saveReport(){
     fix:$('#fFix').value.trim(), notes:$('#fNotes').value.trim(),
     tags:$('#fTags').value.split(',').map(t => t.trim()).filter(Boolean),
     attachments:pendingAttachments.slice(), date:$('#fDate').value || todayISO(),
+    triagedAt:$('#fTriaged').value, resolvedAt:$('#fResolved').value, paidAt:$('#fPaid').value,
+    hours:Number($('#fHours').value) || 0,
     updated:new Date().toISOString()
   });
   if (editingId) {
     const i = reports.findIndex(r => r.id === editingId);
     data.created = reports[i].created;
+    const was = reports[i];
     reports[i] = data;
+    const nc2 = nCfg();
+    if (nc2.accepted !== false && data.status === 'Accepted' && was.status !== 'Accepted')
+      notify('Accepted: ' + data.title + ' — ' + data.target + (data.bounty ? ' · ' + fmtMoney(data.bounty) : ''), true);
+    if (nc2.paid !== false && data.paidAt && !was.paidAt) notify('Paid ' + fmtMoney(data.bounty) + ' for ' + data.title, true);
     toast('Report updated', 'success');
   } else {
     data.created = new Date().toISOString();
     reports.unshift(data);
     toast('Report logged · +' + xpOf(data) + ' XP', 'success');
+    const nc = nCfg();
+    if (nc.crit !== false && data.severity === 'Critical') notify('Critical logged: ' + data.title + ' (' + data.target + ')', true);
   }
   editingId = null;
   pendingAttachments = [];
@@ -2747,7 +3002,7 @@ function runRecon(){
 /* ============================================================
    18. PROFILE, EXPORT / IMPORT, DEMO DATA
    ============================================================ */
-const PF = {name:'#pfName', handle:'#pfHandle', email:'#pfEmail', avatar:'#pfAvatar', bio:'#pfBio',
+const PF = {name:'#pfName', handle:'#pfHandle', email:'#pfEmail', avatar:'#pfAvatar', bio:'#pfBio', goal:'#pfGoal',
   twitter:'#pfTwitter', linkedin:'#pfLinkedin', hackerone:'#pfH1', bugcrowd:'#pfBc'};
 function loadProfileForm(){ Object.keys(PF).forEach(k => { $(PF[k]).value = profile[k] || ''; }); }
 function saveProfileForm(){
@@ -2916,9 +3171,16 @@ function seedDemo(){
    ============================================================ */
 let gdToken = localStorage.getItem(K.gtoken) || '';
 let gdAuto = lsGet('sl_gd_auto', false);
-function gdConfig(){ return lsGet(K.gdrive, {}) || {}; }
+/* OAuth client ID is a public identifier — safe in client code.
+   The client secret is NOT used by this browser flow and must never be published. */
+const DEFAULT_GD = {clientId:'1083588084079-3fio74kku8ebd3r125lajiruac4588t7.apps.googleusercontent.com', apiKey:''};
+function gdConfig(){
+  const c = lsGet(K.gdrive, null);
+  return (c && c.clientId) ? c : DEFAULT_GD;
+}
 function loadGdForm(){
   const c = gdConfig();
+  if (!lsGet(K.gdrive, null)) lsSet(K.gdrive, DEFAULT_GD);
   const a = $('#gdAuto'); if (a) a.checked = !!gdAuto;
   $('#gdClientId').value = c.clientId || '';
   $('#gdApiKey').value = c.apiKey || '';
@@ -3063,9 +3325,9 @@ function fbAuthAction(mode){
   if (!firebase.auth) { toast('Firebase Auth script did not load.', 'error'); return; }
   const email = ($('#fbEmail').value || '').trim(), pass = $('#fbPassword').value || '';
   if (!email || pass.length < 6) { toast('Enter an email and a password of at least 6 characters.', 'error'); return; }
-  const fn = mode === 'up' ? 'createUserWithEmailAndPassword' : 'signInWithEmailAndPassword';
-  firebase.auth()[fn](email, pass)
-    .then(() => toast(mode === 'up' ? 'Account created — you are signed in' : 'Signed in', 'success'))
+  if (!emailAllowed(email)) { toast('That email is not on the allowed list.', 'error'); return; }
+  firebase.auth().signInWithEmailAndPassword(email, pass)
+    .then(() => toast('Signed in', 'success'))
     .catch(err => toast(err && err.message ? err.message.replace('Firebase: ','') : 'Authentication failed.', 'error'));
 }
 function fbSignOut(){
@@ -3080,6 +3342,12 @@ function fbWatchAuth(){
     if (el) el.textContent = u ? u.email : 'signed out';
     setFb(u ? 'Signed in as ' + u.email : 'Signed out', !!u);
     gateReady = true;
+    if (u && !emailAllowed(u.email)) {
+      firebase.auth().signOut();
+      gateShow();
+      gateError(u.email + ' is not on the allowed list for this dashboard.');
+      return;
+    }
     if (u) {
       gateHide();
       gateStatus('authenticated', true);
@@ -3165,50 +3433,160 @@ const fbAutoPush = debounce(() => { if (fbAuto && fbUser) fbPush(true); }, 2500)
 /* ============================================================
    21. COMMAND PALETTE
    ============================================================ */
-let cmdItems = [], cmdSel = 0;
+let cmdItems = [], cmdRender = [], cmdSel = 0;
+
+function hi(text, q, len){
+  const t = String(text || '').replace(/\s+/g, ' ').trim();
+  const i = t.toLowerCase().indexOf(q);
+  if (i === -1) return esc(t.slice(0, len || 90));
+  const pad = Math.max(0, i - 34);
+  const head = (pad ? '…' : '') + t.slice(pad, i);
+  const hit = t.slice(i, i + q.length);
+  const tail = t.slice(i + q.length, i + q.length + (len || 80));
+  return esc(head) + '<mark>' + esc(hit) + '</mark>' + esc(tail) + (t.length > i + q.length + 80 ? '…' : '');
+}
+function anyHit(fields, q){
+  for (let i = 0; i < fields.length; i++) {
+    const v = fields[i];
+    if (v && String(v).toLowerCase().indexOf(q) > -1) return String(v);
+  }
+  return null;
+}
+
 function buildCommands(){
-  const cmds = Object.keys(TITLES).map(p => ({icon:'▸', label:'Go to ' + TITLES[p], sub:'page', run:() => navigate(p)}));
+  const cmds = Object.keys(TITLES).map(p => ({g:'Navigate', icon:'▸', label:'Go to ' + TITLES[p], sub:'page', run:() => navigate(p)}));
   cmds.push(
-    {icon:'＋', label:'New bug report', sub:'create', run:() => openReportModal(null)},
-    {icon:'🏆', label:'Add Hall of Fame entry', sub:'create', run:() => { navigate('hof'); openHofModal(null); }},
-    {icon:'◎', label:'Add target program', sub:'create', run:() => { navigate('targets'); openTargetModal(null); }},
-    {icon:'📡', label:'Add program to radar', sub:'create', run:() => { navigate('radar'); openRadarModal(null); }},
-    {icon:'📋', label:'Import program list', sub:'radar', run:() => { navigate('radar'); openModal('pasteModal'); }},
-    {icon:'⇅', label:'Sync everywhere now', sub:'sync', run:() => syncEverywhere(false)},
-    {icon:'◐', label:'Toggle dark / light theme', sub:'system', run:toggleTheme},
-    {icon:'⬇', label:'Export all data (JSON)', sub:'data', run:exportData},
-    {icon:'⬇', label:'Export portfolio (Markdown)', sub:'data', run:exportAllMd},
-    {icon:'💾', label:'Write to vault file', sub:'data', run:() => vaultWrite(false)},
-    {icon:'☁', label:'Push to Firebase', sub:'sync', run:() => fbPush(false)},
-    {icon:'☁', label:'Pull from Firebase', sub:'sync', run:() => fbPull(false)},
-    {icon:'⏱', label:'Create restore point', sub:'data', run:() => makeSnapshot(true)}
+    {g:'Actions', icon:'＋', label:'New bug report', sub:'create', run:() => openReportModal(null)},
+    {g:'Actions', icon:'🏆', label:'Add Hall of Fame entry', sub:'create', run:() => { navigate('hof'); openHofModal(null); }},
+    {g:'Actions', icon:'◎', label:'Add target program', sub:'create', run:() => { navigate('targets'); openTargetModal(null); }},
+    {g:'Actions', icon:'📡', label:'Add program to radar', sub:'create', run:() => { navigate('radar'); openRadarModal(null); }},
+    {g:'Actions', icon:'📋', label:'Import program list', sub:'radar', run:() => { navigate('radar'); openModal('pasteModal'); }},
+    {g:'Actions', icon:'◐', label:'Toggle dark / light theme', sub:'system', run:toggleTheme},
+    {g:'Actions', icon:'⬇', label:'Export all data (JSON)', sub:'data', run:exportData},
+    {g:'Actions', icon:'⬇', label:'Export portfolio (Markdown)', sub:'data', run:exportAllMd},
+    {g:'Actions', icon:'🌐', label:'Build public portfolio (HTML)', sub:'data', run:exportPortfolio},
+    {g:'Actions', icon:'💾', label:'Write to vault file', sub:'data', run:() => vaultWrite(false)},
+    {g:'Actions', icon:'⇅', label:'Sync everywhere now', sub:'sync', run:() => syncEverywhere(false)},
+    {g:'Actions', icon:'☁', label:'Push to Firebase', sub:'sync', run:() => fbPush(false)},
+    {g:'Actions', icon:'☁', label:'Pull & merge from Firebase', sub:'sync', run:() => fbMerge()},
+    {g:'Actions', icon:'⏱', label:'Create restore point', sub:'data', run:() => makeSnapshot(true)},
+    {g:'Actions', icon:'🖨', label:'Print current page', sub:'data', run:() => window.print()}
   );
-  reports.slice(0, 60).forEach(r => cmds.push({icon:'🐞', label:r.title, sub:r.severity + ' · ' + r.target, run:() => viewReport(r.id)}));
-  targets.forEach(t => cmds.push({icon:'✎', label:'Notes — ' + t.name, sub:'target', run:() => { navigate('targets'); openWorkspace(t.id); }}));
-  radar.forEach(r => cmds.push({icon:'📡', label:r.name, sub:'radar · ' + r.platform, run:() => navigate('radar')}));
-  hof.forEach(h => cmds.push({icon:'🏆', label:h.program + ' — ' + h.type, sub:'hall of fame', run:() => navigate('hof')}));
   return cmds;
 }
+
+/* full-text search across every store in the app */
+function searchEverything(q){
+  const out = [];
+  const cap = (arr, n) => arr.slice(0, n);
+
+  const rHits = [];
+  reports.forEach(r => {
+    const inTitle = r.title.toLowerCase().indexOf(q) > -1;
+    const body = anyHit([r.description, r.steps, r.impact, r.fix, r.notes, (r.tags || []).join(' '),
+      r.cwe, r.ref, r.type, r.target, r.email], q);
+    if (!inTitle && !body) return;
+    rHits.push({
+      g:'Reports', icon:'🐞', label:r.title, sub:r.severity + ' · ' + r.status + ' · ' + r.target,
+      snip: inTitle ? (r.description || r.type) : body, q:q, score: inTitle ? 0 : 1,
+      run:() => viewReport(r.id)
+    });
+  });
+  rHits.sort((a, b) => a.score - b.score);
+  out.push.apply(out, cap(rHits, 10));
+
+  const nHits = [];
+  targets.forEach(t => {
+    if (t.name.toLowerCase().indexOf(q) > -1)
+      nHits.push({g:'Targets', icon:'◎', label:t.name, sub:t.platform + ' · ' + t.priority + ' · ' + t.state,
+        snip:t.notes || t.scope || '', q:q, run:() => { navigate('targets'); }});
+    const doc = anyHit([t.doc], q);
+    if (doc) nHits.push({g:'Notebook', icon:'✎', label:t.name, sub:'working document', snip:doc, q:q,
+      run:() => { navigate('notes'); selectNotebook(t.id); }});
+    (t.noteLog || []).forEach(n => {
+      if (n.text.toLowerCase().indexOf(q) > -1)
+        nHits.push({g:'Notebook', icon:'✎', label:t.name, sub:new Date(n.at).toLocaleDateString() + ' entry',
+          snip:n.text, q:q, run:() => { navigate('notes'); selectNotebook(t.id); }});
+    });
+    const sc = anyHit([t.scope], q);
+    if (sc) nHits.push({g:'Targets', icon:'◎', label:t.name + ' — scope', sub:'in-scope assets', snip:sc, q:q,
+      run:() => { navigate('notes'); selectNotebook(t.id); }});
+  });
+  out.push.apply(out, cap(nHits, 12));
+
+  const hHits = [];
+  hof.forEach(h => {
+    const hit = anyHit([h.program, h.type, h.rank, h.finding, h.notes, h.platform], q);
+    if (hit) hHits.push({g:'Hall of Fame', icon:'🏆', label:h.program + ' — ' + h.type,
+      sub:h.platform + ' · ' + h.date, snip:hit, q:q, run:() => navigate('hof')});
+  });
+  out.push.apply(out, cap(hHits, 6));
+
+  const dHits = [];
+  radar.forEach(r => {
+    const hit = anyHit([r.name, r.url, r.notes, (r.tags || []).join(' '), r.platform, r.reward], q);
+    if (hit) dHits.push({g:'Radar', icon:'📡', label:r.name, sub:r.platform + ' · launched ' + r.launched,
+      snip:hit, q:q, run:() => navigate('radar')});
+  });
+  out.push.apply(out, cap(dHits, 6));
+
+  const aHits = [];
+  ACHIEVEMENTS.forEach(a => {
+    const hit = anyHit([a.name, a.desc], q);
+    if (hit) aHits.push({g:'Achievements', icon:a.icon, label:a.name,
+      sub:(achState[a.id] ? 'cleared' : 'locked') + ' · ' + ((ACH_META[a.id] || {}).t || ''),
+      snip:a.desc, q:q, run:() => navigate('achievements')});
+  });
+  out.push.apply(out, cap(aHits, 5));
+
+  const cHits = buildCommands().filter(c => (c.label + ' ' + c.sub).toLowerCase().indexOf(q) > -1);
+  out.push.apply(out, cap(cHits, 8));
+  return out;
+}
+
 function openCmdk(){
   $('#cmdk').classList.add('open');
+  document.body.style.overflow = 'hidden';
   $('#cmdkInput').value = '';
   filterCmdk('');
   setTimeout(() => $('#cmdkInput').focus(), 40);
 }
 function filterCmdk(q){
-  q = q.toLowerCase().trim();
-  const all = buildCommands();
-  cmdItems = (q ? all.filter(c => (c.label + ' ' + c.sub).toLowerCase().indexOf(q) > -1) : all).slice(0, 40);
+  q = String(q || '').toLowerCase().trim();
+  if (q.length < 2) {
+    cmdItems = buildCommands();
+    $('#cmdkHint').textContent = 'Type at least 2 characters to search reports, notes, targets, recognitions and radar.';
+  } else {
+    cmdItems = searchEverything(q);
+    $('#cmdkHint').textContent = cmdItems.length + ' result' + (cmdItems.length === 1 ? '' : 's') + ' for "' + q + '"';
+  }
   cmdSel = 0;
   drawCmdk();
 }
 function drawCmdk(){
-  $('#cmdkList').innerHTML = cmdItems.length ? cmdItems.map((c, i) =>
-    '<div class="cmdk-item' + (i === cmdSel ? ' sel' : '') + '" data-i="' + i + '">' +
-    '<span class="ci">' + c.icon + '</span><span class="cl">' + esc(c.label) + '</span>' +
-    '<span class="cs">' + esc(c.sub) + '</span></div>').join('')
-    : '<div class="cmdk-item"><span class="cl" style="color:var(--muted)">No matches</span></div>';
+  if (!cmdItems.length) {
+    $('#cmdkList').innerHTML = '<div class="cmdk-empty">Nothing matched. Try a shorter word — search covers report bodies, notebook pages, scope lists and radar entries.</div>';
+    return;
+  }
+  const groups = [];
+  cmdItems.forEach((c, i) => {
+    const g = c.g || 'Results';
+    let last = groups[groups.length - 1];
+    if (!last || last.name !== g) { last = {name:g, items:[]}; groups.push(last); }
+    last.items.push({c:c, i:i});
+  });
+  $('#cmdkList').innerHTML = groups.map(g =>
+    '<div class="cmdk-group">' + esc(g.name) + '<span>' + g.items.length + '</span></div>' +
+    g.items.map(o =>
+      '<div class="cmdk-item' + (o.i === cmdSel ? ' sel' : '') + '" data-i="' + o.i + '">' +
+      '<span class="ci">' + o.c.icon + '</span>' +
+      '<div class="cbody"><div class="cl">' + (o.c.q ? hi(o.c.label, o.c.q, 70) : esc(o.c.label)) + '</div>' +
+      (o.c.snip ? '<div class="cmdk-snip">' + hi(o.c.snip, o.c.q || '', 90) + '</div>' : '') + '</div>' +
+      '<span class="cs">' + esc(o.c.sub || '') + '</span></div>').join('')
+  ).join('');
   $$('#cmdkList .cmdk-item[data-i]').forEach(el => el.addEventListener('click', () => runCmd(Number(el.dataset.i))));
+  const sel = $('#cmdkList .cmdk-item.sel');
+  if (sel && sel.scrollIntoView) sel.scrollIntoView({block:'nearest'});
 }
 function runCmd(i){
   const c = cmdItems[i];
@@ -3223,6 +3601,16 @@ function runCmd(i){
    ============================================================ */
 const KNOWN_EMAIL = 'bugbountyankit@gmail.com';
 let gateMode = 'in', gateReady = false;
+function allowList(){
+  const raw = lsGet('sl_allowed_emails', null);
+  const arr = Array.isArray(raw) ? raw : String(raw || KNOWN_EMAIL).split(',');
+  return arr.map(e => String(e).trim().toLowerCase()).filter(Boolean);
+}
+function emailAllowed(email){
+  const list = allowList();
+  if (!list.length) return true;
+  return list.indexOf(String(email || '').toLowerCase()) > -1;
+}
 
 function gateShow(){ document.body.classList.add('gated'); $('#authGate').classList.add('show'); }
 function gateHide(){ document.body.classList.remove('gated'); $('#authGate').classList.remove('show'); }
@@ -3249,16 +3637,16 @@ function gateSubmit(){
   const email = $('#gateEmail').value.trim(), pass = $('#gatePass').value;
   if (!email || pass.length < 6) { gateError('Enter an email and a password of at least 6 characters.'); return; }
   gateStatus('authenticating…', false);
-  const fn = gateMode === 'up' ? 'createUserWithEmailAndPassword' : 'signInWithEmailAndPassword';
-  firebase.auth()[fn](email, pass)
+  if (!emailAllowed(email)) { gateError('That email is not on the allowed list for this dashboard.'); return; }
+  firebase.auth().signInWithEmailAndPassword(email, pass)
     .then(() => { lsSet('sl_last_email', email); gateError(''); })
     .catch(err => {
       const code = (err && err.code) || '';
       const map = {
         'auth/invalid-credential':'Email or password is wrong.',
         'auth/wrong-password':'Email or password is wrong.',
-        'auth/user-not-found':'No account with that email — use Create account.',
-        'auth/email-already-in-use':'That email already has an account — use Sign in.',
+        'auth/user-not-found':'No account with that email. Create it in the Firebase console first.',
+        'auth/invalid-login-credentials':'Email or password is wrong.',
         'auth/weak-password':'Password must be at least 6 characters.',
         'auth/invalid-email':'That email address is not valid.',
         'auth/network-request-failed':'No network. You can still use this device only.',
@@ -3274,8 +3662,17 @@ function gateGoogle(){
   if (typeof firebase === 'undefined' || !firebase.auth) { gateError('Cloud sign-in unavailable here.'); return; }
   if (!fbInit()) return;
   const prov = new firebase.auth.GoogleAuthProvider();
+  prov.setCustomParameters({prompt:'select_account'});
   firebase.auth().signInWithPopup(prov)
-    .then(() => gateError(''))
+    .then(res => {
+      const em = res && res.user ? res.user.email : '';
+      if (!emailAllowed(em)) {
+        firebase.auth().signOut();
+        gateError(em + ' is not on the allowed list. Add it in Settings, or sign in with an approved account.');
+        return;
+      }
+      gateError('');
+    })
     .catch(err => {
       const c = (err && err.code) || '';
       if (c === 'auth/operation-not-allowed') gateError('Enable Google sign-in in Firebase → Authentication → Sign-in method.');
@@ -3284,12 +3681,42 @@ function gateGoogle(){
     });
 }
 function gatePasswordReset(){
-  if (typeof firebase === 'undefined' || !firebase.auth || !fbInit()) return;
+  if (typeof firebase === 'undefined' || !firebase.auth) {
+    gateError('The Firebase SDK did not load — check your connection, then reload.');
+    return;
+  }
+  if (!fbInit()) { gateError('Firebase config is missing, so no reset can be sent.'); return; }
   const email = $('#gateEmail').value.trim();
-  if (!email) { gateError('Type your email first, then click reset.'); return; }
+  if (!email) { gateError('Type your email in the box above first, then click Forgot password.'); return; }
+  if (!emailAllowed(email)) { gateError('That email is not on the allowed list.'); return; }
+  gateStatus('sending reset link…', false);
+  gateError('');
   firebase.auth().sendPasswordResetEmail(email)
-    .then(() => { gateError(''); toast('Reset link sent to ' + email, 'success'); gateStatus('reset email sent', false); })
-    .catch(err => gateError((err && err.message) || 'Could not send the reset email.'));
+    .then(() => {
+      gateStatus('reset link sent', true);
+      const box = $('#gateErr');
+      box.style.color = 'var(--ok)';
+      box.style.borderLeftColor = 'var(--ok)';
+      box.textContent = 'Reset link sent to ' + email + '. Check your inbox and your spam folder — it arrives from noreply@' +
+        (fbConfig().projectId || 'firebase') + '.firebaseapp.com';
+      box.classList.add('show');
+    })
+    .catch(err => {
+      const c = (err && err.code) || '';
+      const map = {
+        'auth/user-not-found':'No account exists with that email. Create it in Firebase → Authentication → Add user.',
+        'auth/invalid-email':'That email address is not valid.',
+        'auth/missing-email':'Type your email above first.',
+        'auth/unauthorized-continue-uri':'This domain is not authorised in Firebase → Authentication → Settings → Authorized domains.',
+        'auth/too-many-requests':'Too many reset attempts. Wait a few minutes.',
+        'auth/network-request-failed':'No network connection.'
+      };
+      const box = $('#gateErr');
+      box.style.color = '';
+      box.style.borderLeftColor = '';
+      gateError(map[c] || ((err && err.message) || 'Could not send the reset email.') + (c ? ' [' + c + ']' : ''));
+      gateStatus('reset failed', false);
+    });
 }
 function gateLocalOnly(){
   lsSet('sl_gate_mode', 'local');
@@ -3312,6 +3739,8 @@ function openWorkspace(id){
   switchWorkTab('notes');
   renderNotes();
   renderWorkFindings();
+  renderAssets();
+  $('#wTimer').textContent = timer ? '⏹ Stop timer' : '⏱ Start hunt timer';
   openModal('workModal');
   setTimeout(() => $('#wNote').focus(), 60);
 }
@@ -3584,6 +4013,708 @@ function renderSyncPanel(){
   const t = $('#syncAllToggle'); if (t) t.checked = syncAllOn;
 }
 
+
+/* ============================================================
+   22E. RANK EMBLEMS — inline SVG, one per rank
+   ============================================================ */
+const RANK_ART = {
+  E:{a:'#7a89a8', b:'#4d5a78', motif:'<path d="M60 46 L100 74 L140 46" fill="none" stroke="url(#GB)" stroke-width="7" stroke-linecap="round"/><path d="M60 74 L100 102 L140 74" fill="none" stroke="url(#GB)" stroke-width="5" stroke-linecap="round" opacity=".55"/>'},
+  D:{a:'#35e08f', b:'#1c8f5c', motif:'<path d="M62 42 L100 70 L138 42" fill="none" stroke="url(#GB)" stroke-width="7" stroke-linecap="round"/><path d="M62 70 L100 98 L138 70" fill="none" stroke="url(#GB)" stroke-width="7" stroke-linecap="round"/><path d="M62 98 L100 126 L138 98" fill="none" stroke="url(#GB)" stroke-width="7" stroke-linecap="round" opacity=".5"/>'},
+  C:{a:'#4dd8ff', b:'#1a7fa8', motif:'<path d="M100 38 L136 118 L100 96 L64 118 Z" fill="url(#GB)" opacity=".92"/><circle cx="100" cy="132" r="7" fill="url(#GB)"/>'},
+  B:{a:'#8b5cff', b:'#4d29b8', motif:'<path d="M100 34 L114 76 L158 76 L122 102 L136 144 L100 118 L64 144 L78 102 L42 76 L86 76 Z" fill="url(#GB)"/>'},
+  A:{a:'#ffc247', b:'#b8760a', motif:'<path d="M46 128 L58 56 L86 92 L100 40 L114 92 L142 56 L154 128 Z" fill="url(#GB)"/><rect x="46" y="134" width="108" height="12" fill="url(#GB)" opacity=".8"/>'},
+  S:{a:'#ff8ae0', b:'#8b5cff', motif:'<g opacity=".5"><path d="M100 18 L104 62 L100 70 L96 62 Z" fill="url(#GB)"/><path d="M100 182 L104 138 L100 130 L96 138 Z" fill="url(#GB)"/><path d="M18 100 L62 96 L70 100 L62 104 Z" fill="url(#GB)"/><path d="M182 100 L138 96 L130 100 L138 104 Z" fill="url(#GB)"/></g><path d="M100 44 L120 84 L164 90 L132 120 L140 164 L100 143 L60 164 L68 120 L36 90 L80 84 Z" fill="url(#GB)"/><circle cx="100" cy="106" r="13" fill="#04060d" opacity=".55"/>'}
+};
+let artSeq = 0;
+function rankEmblem(letter, opts){
+  const art = RANK_ART[letter] || RANK_ART.E;
+  const id = 'rk' + (++artSeq);
+  const dim = opts && opts.dim;
+  return '<svg viewBox="0 0 200 200" role="img" aria-label="' + letter + '-Rank emblem" xmlns="http://www.w3.org/2000/svg">' +
+    '<defs>' +
+      '<linearGradient id="GA' + id + '" x1="0" y1="0" x2="1" y2="1">' +
+        '<stop offset="0" stop-color="' + art.a + '"/><stop offset="1" stop-color="' + art.b + '"/></linearGradient>' +
+      '<linearGradient id="GB' + id + '" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="' + art.a + '"/><stop offset="1" stop-color="' + art.b + '"/></linearGradient>' +
+      '<filter id="GL' + id + '"><feGaussianBlur stdDeviation="4" result="b"/><feMerge>' +
+        '<feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+    '</defs>' +
+    '<g opacity="' + (dim ? '.5' : '1') + '">' +
+      '<path d="M100 6 L180 50 L180 150 L100 194 L20 150 L20 50 Z" fill="var(--panel2)" stroke="url(#GA' + id + ')" stroke-width="3"/>' +
+      '<path d="M100 16 L171 55 L171 145 L100 184 L29 145 L29 55 Z" fill="none" stroke="url(#GA' + id + ')" stroke-width="1" opacity=".45"/>' +
+      (letter === 'S' ? '<g filter="url(#GL' + id + ')">' : '<g>') +
+      art.motif.replace(/url\(#GB\)/g, 'url(#GB' + id + ')') + '</g>' +
+      '<text x="100" y="176" text-anchor="middle" font-family="Chakra Petch,sans-serif" font-size="26" font-weight="700" fill="url(#GA' + id + ')" letter-spacing="3">' + letter + '</text>' +
+    '</g></svg>';
+}
+function renderRankGallery(){
+  const xp = totalXP(), cur = rankFor(xp);
+  $('#rankHero').innerHTML = rankEmblem(cur.r) +
+    '<div class="rh"><div class="eyebrow">CURRENT CLASSIFICATION</div>' +
+    '<h2>' + cur.r + '-Rank · ' + esc(cur.title) + '</h2>' +
+    '<p>' + xp.toLocaleString() + ' XP earned across ' + reports.length + ' findings, ' + hof.length +
+    ' recognitions and ' + totalNotes() + ' field notes.</p>' +
+    '<div class="xp-track" style="margin-top:14px"><div class="xp-fill" style="width:' +
+      (cur.max === Infinity ? 100 : Math.min(100, ((xp - cur.min) / (cur.max - cur.min)) * 100)) + '%"></div></div>' +
+    '<div class="xp-label"><span>' + cur.min.toLocaleString() + '</span><span>' +
+      (cur.max === Infinity ? 'MAX' : cur.max.toLocaleString()) + '</span></div></div>';
+  $('#rankMeta').textContent = xp.toLocaleString() + ' XP';
+  $('#rankGallery').innerHTML = RANKS.map(r => {
+    const reached = xp >= r.min, isCur = r.r === cur.r;
+    return '<div class="rank-tile' + (reached ? ' reached' : '') + (isCur ? ' current' : '') + '">' +
+      (isCur ? '<span class="now">CURRENT</span>' : '') +
+      rankEmblem(r.r, {dim:!reached}) +
+      '<div class="rl">' + r.r + '-RANK</div><div class="rt">' + esc(r.title) + '</div>' +
+      '<div class="rx">' + r.min.toLocaleString() + (r.max === Infinity ? '+' : ' – ' + r.max.toLocaleString()) + ' XP</div></div>';
+  }).join('');
+}
+
+/* ============================================================
+   22F. ACHIEVEMENT SYSTEM v2 — categories, tiers, points
+   ============================================================ */
+const ACH_META = {
+  first:{c:'Findings', t:'Bronze'}, ten:{c:'Findings', t:'Bronze'}, fifty:{c:'Findings', t:'Silver'},
+  hundred:{c:'Findings', t:'Gold'}, crit1:{c:'Severity', t:'Bronze'}, crit10:{c:'Severity', t:'Gold'},
+  paid:{c:'Bounty', t:'Bronze'}, k1:{c:'Bounty', t:'Silver'}, k10:{c:'Bounty', t:'Gold'},
+  bigfish:{c:'Bounty', t:'Silver'}, whale:{c:'Bounty', t:'Legendary'}, acc25:{c:'Findings', t:'Silver'},
+  streak3:{c:'Discipline', t:'Bronze'}, streak7:{c:'Discipline', t:'Silver'}, streak30:{c:'Discipline', t:'Legendary'},
+  poly:{c:'Craft', t:'Silver'}, hopper:{c:'Craft', t:'Bronze'}, thorough:{c:'Craft', t:'Gold'},
+  evidence:{c:'Craft', t:'Silver'}, archivist:{c:'Craft', t:'Gold'},
+  hof1:{c:'Recognition', t:'Bronze'}, hof10:{c:'Recognition', t:'Gold'}, diverse:{c:'Recognition', t:'Silver'},
+  note25:{c:'Field Work', t:'Bronze'}, note100:{c:'Field Work', t:'Gold'}, scout:{c:'Field Work', t:'Bronze'},
+  recruiter:{c:'Field Work', t:'Silver'}, curator:{c:'Field Work', t:'Silver'},
+  srank:{c:'Ascension', t:'Legendary'}
+};
+const TIER_PTS = {Bronze:10, Silver:25, Gold:50, Legendary:100};
+const ACH_CATS = ['Findings','Severity','Bounty','Discipline','Craft','Recognition','Field Work','Ascension'];
+let achFilter = 'all';
+function achPoints(){
+  return ACHIEVEMENTS.reduce((n, a) => n + (achState[a.id] ? (TIER_PTS[(ACH_META[a.id] || {}).t] || 10) : 0), 0);
+}
+function achMaxPoints(){
+  return ACHIEVEMENTS.reduce((n, a) => n + (TIER_PTS[(ACH_META[a.id] || {}).t] || 10), 0);
+}
+function renderAchievements(){
+  renderRankGallery();
+  const unlocked = ACHIEVEMENTS.filter(a => achState[a.id]).length;
+  $('#achMeta').textContent = unlocked + ' / ' + ACHIEVEMENTS.length + ' · ' + achPoints() + ' pts';
+  const tierCount = t => ACHIEVEMENTS.filter(a => (ACH_META[a.id] || {}).t === t && achState[a.id]).length;
+  $('#achBar').innerHTML =
+    '<div class="hstat"><div class="v">' + unlocked + '</div><div class="l">Unlocked</div></div>' +
+    '<div class="hstat"><div class="v">' + achPoints() + '</div><div class="l">Points</div></div>' +
+    '<div class="hstat"><div class="v t-bronze">' + tierCount('Bronze') + '</div><div class="l">Bronze</div></div>' +
+    '<div class="hstat"><div class="v t-silver">' + tierCount('Silver') + '</div><div class="l">Silver</div></div>' +
+    '<div class="hstat"><div class="v t-gold">' + tierCount('Gold') + '</div><div class="l">Gold</div></div>' +
+    '<div class="hstat"><div class="v t-legendary">' + tierCount('Legendary') + '</div><div class="l">Legendary</div></div>';
+
+  let html = '';
+  ACH_CATS.forEach(cat => {
+    const inCat = ACHIEVEMENTS.filter(a => (ACH_META[a.id] || {}).c === cat).filter(a => {
+      if (achFilter === 'unlocked') return !!achState[a.id];
+      if (achFilter === 'locked') return !achState[a.id];
+      return true;
+    });
+    if (!inCat.length) return;
+    const done = ACHIEVEMENTS.filter(a => (ACH_META[a.id] || {}).c === cat && achState[a.id]).length;
+    const tot = ACHIEVEMENTS.filter(a => (ACH_META[a.id] || {}).c === cat).length;
+    html += '<div class="ach-cat">' + esc(cat) + ' · ' + done + '/' + tot + '</div><div class="cards">' +
+      inCat.map(a => {
+        const meta = ACH_META[a.id] || {t:'Bronze'};
+        const v = a.val(), on = !!achState[a.id];
+        const pct = Math.min(100, (v / a.goal) * 100);
+        return '<article class="ach' + (on ? ' unlocked tl-' + slug(meta.t) : '') + '">' +
+          '<div class="ai">' + a.icon + '</div><div style="flex:1;min-width:0">' +
+          '<h5>' + esc(a.name) + '</h5><p>' + esc(a.desc) + '</p>' +
+          '<div class="prog-track"><div class="prog-fill" style="width:' + pct + '%"></div></div>' +
+          '<div class="mono" style="font-size:10px;color:var(--dim);margin-top:5px">' +
+            Math.min(v, a.goal).toLocaleString() + ' / ' + a.goal.toLocaleString() +
+            ' · ' + (TIER_PTS[meta.t] || 10) + ' pts' +
+            (on ? ' · cleared ' + new Date(achState[a.id]).toLocaleDateString() : '') + '</div></div>' +
+          '<span class="tier t-' + slug(meta.t) + '">' + esc(meta.t) + '</span></article>';
+      }).join('') + '</div>';
+  });
+  $('#achGrid').innerHTML = html || '<div class="empty"><span class="e-ico">✦</span><h4>Nothing here</h4><p>Switch the filter above.</p></div>';
+
+  const xp = totalXP();
+  $('#roadMeta').textContent = xp.toLocaleString() + ' XP total';
+  $('#roadmap').innerHTML = RANKS.map(r => {
+    const reached = xp >= r.min;
+    const pct = r.max === Infinity ? (reached ? 100 : 0)
+      : Math.max(0, Math.min(100, ((xp - r.min) / (r.max - r.min)) * 100));
+    return '<div class="quest' + (reached ? ' done' : '') + '">' +
+      '<div class="qi">' + r.r + '</div>' +
+      '<div class="qt"><b>' + r.r + '-Rank · ' + esc(r.title) + '</b>' +
+      '<span>' + r.min.toLocaleString() + (r.max === Infinity ? '+' : ' – ' + r.max.toLocaleString()) + ' XP</span>' +
+      '<div class="prog-track" style="margin-top:6px"><div class="prog-fill" style="width:' + pct + '%"></div></div></div>' +
+      '<div class="qr">' + (reached ? 'REACHED' : Math.max(0, r.min - xp).toLocaleString() + ' XP to go') + '</div></div>';
+  }).join('');
+}
+
+/* ============================================================
+   22G. NOTEBOOK — full-page per-program document
+   ============================================================ */
+let nbCurrent = null;
+function renderNotebook(){
+  const list = targets.slice().sort((a, b) => a.name.localeCompare(b.name));
+  $('#navNotes').textContent = totalNotes() + targets.filter(t => (t.doc || '').trim()).length;
+  $('#nbGlobalMeta').textContent = targets.length + ' programs · ' + totalNotes() + ' entries · ' +
+    targets.reduce((n, t) => n + ((t.doc || '').split(/\s+/).filter(Boolean).length), 0).toLocaleString() + ' words';
+
+  $('#nbList').innerHTML = list.length ? list.map(t => {
+    const words = (t.doc || '').split(/\s+/).filter(Boolean).length;
+    return '<button class="nb-item' + (t.id === nbCurrent ? ' active' : '') + '" data-nb="' + esc(t.id) + '">' +
+      '<span class="nn">' + esc(t.name) + '</span>' +
+      '<span class="nc">' + (words ? words + 'w' : '') + ((t.noteLog || []).length ? ' · ' + t.noteLog.length : '') + '</span></button>';
+  }).join('') : '<div style="padding:16px;color:var(--muted);font-size:13px">No programs yet. Add one on the Targets page first.</div>';
+
+  $$('#nbList [data-nb]').forEach(b => b.addEventListener('click', () => selectNotebook(b.dataset.nb)));
+
+  const jump = $('#nbJump');
+  jump.innerHTML = '<option value="">Jump to program…</option>' +
+    list.map(t => '<option value="' + esc(t.id) + '">' + esc(t.name) + '</option>').join('');
+  jump.value = nbCurrent || '';
+
+  if (nbCurrent && !targets.some(t => t.id === nbCurrent)) nbCurrent = null;
+  if (!nbCurrent && list.length) { nbCurrent = list[0].id; }
+  if (nbCurrent) paintNotebook();
+}
+function selectNotebook(id){
+  nbCurrent = id;
+  renderNotebook();
+  $('#nbDoc').focus();
+}
+function paintNotebook(){
+  const t = targets.find(x => x.id === nbCurrent);
+  if (!t) return;
+  $('#nbTitle').textContent = t.name;
+  $('#nbPlat').style.display = '';
+  $('#nbPlat').textContent = t.platform + ' · ' + t.priority;
+  $('#nbDoc').value = t.doc || '';
+  $('#nbSaved').textContent = t.docAt ? 'saved ' + new Date(t.docAt).toLocaleString() : 'not saved yet';
+  updateNbCount();
+  $('#nbLog').innerHTML = (t.noteLog || []).length
+    ? '<div class="ach-cat">Timestamped entries</div>' + (t.noteLog || []).slice().sort((a, b) => new Date(b.at) - new Date(a.at)).map(n =>
+      '<div class="note-item"><div class="nat">' + new Date(n.at).toLocaleString() + '</div>' +
+      '<div class="ntx">' + esc(n.text) + '</div>' +
+      '<button class="ndel" data-nbdel="' + esc(n.id) + '" aria-label="Delete entry">✕</button></div>').join('')
+    : '';
+  $$('#nbLog [data-nbdel]').forEach(b => b.addEventListener('click', () => {
+    t.noteLog = t.noteLog.filter(n => n.id !== b.dataset.nbdel);
+    saveAll(); paintNotebook(); renderTargets();
+  }));
+  $$('.nb-item').forEach(b => b.classList.toggle('active', b.dataset.nb === nbCurrent));
+}
+function updateNbCount(){
+  const v = $('#nbDoc').value;
+  const words = v.split(/\s+/).filter(Boolean).length;
+  $('#nbCount').textContent = words.toLocaleString() + ' words · ' + v.split('\n').length + ' lines · ' + v.length.toLocaleString() + ' chars';
+}
+const nbSave = debounce(function () {
+  const t = targets.find(x => x.id === nbCurrent);
+  if (!t) return;
+  t.doc = $('#nbDoc').value;
+  t.docAt = new Date().toISOString();
+  saveAll();
+  $('#nbSaved').textContent = 'saved ' + new Date(t.docAt).toLocaleTimeString();
+  renderNotebook();
+}, 900);
+function nbAddLogEntry(){
+  const t = targets.find(x => x.id === nbCurrent);
+  if (!t) { toast('Pick a program first.', 'warning'); return; }
+  const txt = prompt('Timestamped entry:');
+  if (!txt || !txt.trim()) return;
+  t.noteLog.push({id:uid('n'), at:new Date().toISOString(), text:txt.trim()});
+  saveAll(); paintNotebook(); renderTargets(); checkAchievements(true);
+  toast('Entry added', 'success');
+}
+function nbSearch(){
+  const q = ($('#nbSearch').value || '').toLowerCase().trim();
+  const box = $('#nbResults');
+  if (q.length < 2) { box.innerHTML = ''; return; }
+  const hits = [];
+  targets.forEach(t => {
+    const doc = t.doc || '';
+    if (doc.toLowerCase().indexOf(q) > -1) {
+      const i = doc.toLowerCase().indexOf(q);
+      hits.push({id:t.id, name:t.name, kind:'document', snip:doc.slice(Math.max(0, i - 60), i + 90)});
+    }
+    (t.noteLog || []).forEach(n => {
+      if (n.text.toLowerCase().indexOf(q) > -1) hits.push({id:t.id, name:t.name, kind:new Date(n.at).toLocaleDateString(), snip:n.text.slice(0, 150)});
+    });
+  });
+  box.innerHTML = hits.length
+    ? '<div class="ach-cat">' + hits.length + ' matches</div>' + hits.slice(0, 25).map(h =>
+      '<div class="note-item" style="cursor:pointer" data-hit="' + esc(h.id) + '">' +
+      '<div class="nat">' + esc(h.name) + ' · ' + esc(h.kind) + '</div>' +
+      '<div class="ntx">…' + esc(h.snip) + '…</div></div>').join('')
+    : '<div class="hint" style="margin-top:12px">No matches.</div>';
+  $$('#nbResults [data-hit]').forEach(b => b.addEventListener('click', () => selectNotebook(b.dataset.hit)));
+}
+function notebookMd(t){
+  const L = ['# ' + t.name, '', '- Platform: ' + t.platform, '- Priority: ' + t.priority + ' · State: ' + t.state];
+  if (t.url) L.push('- URL: ' + t.url);
+  if (t.scope) L.push('', '## In-scope assets', '', t.scope);
+  if (t.doc) L.push('', '## Working notes', '', t.doc);
+  if ((t.noteLog || []).length) {
+    L.push('', '## Log', '');
+    t.noteLog.slice().sort((a, b) => new Date(b.at) - new Date(a.at))
+      .forEach(n => L.push('**' + new Date(n.at).toLocaleString() + '**', '', n.text, ''));
+  }
+  const rs = reports.filter(r => r.target === t.name);
+  if (rs.length) {
+    L.push('', '## Findings filed', '');
+    rs.forEach(r => L.push('- [' + r.severity + '] ' + r.title + ' — ' + r.status + (r.bounty ? ' · $' + r.bounty : '')));
+  }
+  return L.join('\n');
+}
+
+
+/* ===================== 22H. NOTIFICATIONS ===================== */
+function nCfg(){ return lsGet('sl_notify', {}) || {}; }
+function saveNCfg(){
+  lsSet('sl_notify', {tg:$('#nTgToken').value.trim(), chat:$('#nTgChat').value.trim(),
+    discord:$('#nDiscord').value.trim(), hook:$('#nHook').value.trim(), email:$('#nEmail').value.trim(),
+    accepted:$('#nAccepted').checked, paid:$('#nPaid').checked, crit:$('#nCrit').checked, stale:$('#nStale').checked});
+  loadNCfg();
+  toast('Notification channels saved', 'success');
+}
+function loadNCfg(){
+  const c = nCfg();
+  $('#nTgToken').value = c.tg || ''; $('#nTgChat').value = c.chat || '';
+  $('#nDiscord').value = c.discord || ''; $('#nHook').value = c.hook || '';
+  $('#nEmail').value = c.email || profile.email || '';
+  $('#nAccepted').checked = c.accepted !== false; $('#nPaid').checked = c.paid !== false;
+  $('#nCrit').checked = c.crit !== false; $('#nStale').checked = c.stale !== false;
+  const on = [c.tg && c.chat, c.discord, c.hook].filter(Boolean).length;
+  $('#notifMeta').textContent = on ? on + ' channel' + (on > 1 ? 's' : '') + ' active' : 'no channels yet';
+}
+async function notify(text, silent){
+  const c = nCfg();
+  const sent = [];
+  if (c.tg && c.chat) {
+    try {
+      const r = await fetch('https://api.telegram.org/bot' + c.tg + '/sendMessage', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({chat_id:c.chat, text:'🗡 ARISE\n' + text})});
+      if (r.ok) sent.push('Telegram'); else if (!silent) toast('Telegram rejected it — check the token and chat ID.', 'error');
+    } catch (e) { if (!silent) toast('Telegram unreachable.', 'error'); }
+  }
+  if (c.discord) {
+    try {
+      await fetch(c.discord, {method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({content:'**ARISE** — ' + text})});
+      sent.push('Discord');
+    } catch (e) {}
+  }
+  if (c.hook) {
+    try {
+      await fetch(c.hook, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({text:text, email:c.email, at:new Date().toISOString(), hunter:profile.name || ''})});
+      sent.push('webhook');
+    } catch (e) {}
+  }
+  if (!silent) {
+    $('#nOut').textContent = sent.length ? 'Delivered to ' + sent.join(', ') + '.' : 'No channel is configured yet.';
+    toast(sent.length ? 'Sent via ' + sent.join(', ') : 'Add a channel first', sent.length ? 'success' : 'warning');
+  }
+  return sent;
+}
+function digestText(){
+  const st = staleReports();
+  return 'Portfolio digest\n' + reports.length + ' reports · ' + fmtMoney(sumBounty(reports)) + ' earned · ' +
+    countBy(r => r.status === 'Accepted') + ' accepted · ' + hof.length + ' recognitions\n' +
+    'Rank ' + rankFor(totalXP()).r + ' · ' + totalXP().toLocaleString() + ' XP · streak ' + computeStreak() + 'd\n' +
+    (st.length ? 'Needs chasing: ' + st.map(r => r.title).slice(0,5).join('; ') : 'Nothing overdue.');
+}
+function emailDigest(){
+  const c = nCfg();
+  const to = c.email || profile.email || '';
+  if (!to) { toast('Add a notification email first.', 'warning'); return; }
+  window.location.href = 'mailto:' + encodeURIComponent(to) +
+    '?subject=' + encodeURIComponent('ARISE digest ' + todayISO()) + '&body=' + encodeURIComponent(digestText());
+}
+function staleReports(){
+  const lim = Date.now() - 14 * 86400000;
+  return reports.filter(r => r.status === 'Submitted' && !r.triagedAt && new Date(r.date).getTime() < lim);
+}
+function renderNudges(){
+  const st = staleReports();
+  $('#nudgeMeta').textContent = st.length ? st.length + ' overdue' : 'all clear';
+  $('#nudgeList').innerHTML = st.length ? st.slice(0, 8).map(r => {
+    const d = Math.floor((Date.now() - new Date(r.date).getTime()) / 86400000);
+    return '<div class="nudge"><span>⏳</span><div style="flex:1;min-width:0"><b>' + esc(r.title) + '</b>' +
+      '<div class="mono" style="font-size:11px;color:var(--muted)">' + esc(r.target) + ' · silent ' + d + ' days</div></div>' +
+      '<button class="btn btn-sm" data-chase="' + r.id + '">Chase</button></div>';
+  }).join('') : '<div class="empty"><span class="e-ico">✓</span><h4>Nothing overdue</h4><p>Every submitted report has been triaged or is still fresh.</p></div>';
+  $$('#nudgeList [data-chase]').forEach(b => b.addEventListener('click', () => {
+    const r = reports.find(x => x.id === b.dataset.chase);
+    const body = 'Hello,\n\nFollowing up on my report "' + r.title + '" submitted on ' + r.date +
+      ((r.ref) ? ' (ref ' + r.ref + ')' : '') + '. Could you share an update on triage status?\n\nThanks,\n' + (profile.name || '');
+    copyText(body, 'Follow-up draft');
+    notify('Chasing: ' + r.title + ' (' + r.target + ')', true);
+  }));
+}
+
+/* ===================== 22I. HUNT TIMER ===================== */
+let timer = lsGet('sl_timer', null);
+function timerTick(){
+  const el = $('#timerTxt'), pill = $('#timerPill');
+  if (!timer) { el.textContent = '00:00'; pill.classList.remove('run'); pill.title = 'No hunt running — open a target to start'; return; }
+  const secs = Math.floor((Date.now() - timer.at) / 1000);
+  el.textContent = String(Math.floor(secs / 3600)).padStart(2,'0') + ':' + String(Math.floor(secs / 60) % 60).padStart(2,'0');
+  pill.classList.add('run');
+  const t = targets.find(x => x.id === timer.id);
+  pill.title = 'Hunting ' + (t ? t.name : '') + ' — click to stop';
+}
+function toggleTimer(id){
+  if (timer) {
+    const mins = Math.max(1, Math.round((Date.now() - timer.at) / 60000));
+    const t = targets.find(x => x.id === timer.id);
+    if (t) { t.sessions.push({at:new Date(timer.at).toISOString(), mins:mins}); saveAll(); }
+    timer = null; lsSet('sl_timer', null);
+    toast('Logged ' + mins + ' min on ' + (t ? t.name : 'target'), 'success');
+    renderTargets();
+  } else {
+    const tid = id || nbCurrent || (targets[0] && targets[0].id);
+    if (!tid) { toast('Create a target first.', 'warning'); return; }
+    timer = {id:tid, at:Date.now()};
+    lsSet('sl_timer', timer);
+    toast('Timer running on ' + (targets.find(x => x.id === tid) || {}).name, 'info');
+  }
+  timerTick();
+  if ($('#workModal').classList.contains('open')) $('#wTimer').textContent = timer ? '⏹ Stop timer' : '⏱ Start hunt timer';
+}
+function targetHours(t){ return (t.sessions || []).reduce((n, x) => n + x.mins, 0) / 60; }
+
+/* ===================== 22J. ASSETS ===================== */
+function renderAssets(){
+  const t = targets.find(x => x.id === workTargetId);
+  if (!t) return;
+  const A = t.assets || [];
+  const c = k => A.filter(a => a.s === k).length;
+  $('#wAssetMeta').textContent = A.length + ' assets · ' + c('untested') + ' untested · ' + c('done') + ' done';
+  $('#wAssetList').innerHTML = A.length ? A.map((a, i) =>
+    '<div class="asset a-' + esc(a.s) + '"><span class="ah">' + esc(a.h) + '</span>' +
+    '<select data-as="' + i + '">' + ['untested','testing','done','dead'].map(o =>
+      '<option' + (a.s === o ? ' selected' : '') + '>' + o + '</option>').join('') + '</select>' +
+    '<button class="act" data-ad="' + i + '">✕</button></div>').join('')
+    : '<div class="hint">No assets yet. Paste subdomains above — the untested ones are where tonight starts.</div>';
+  $$('#wAssetList [data-as]').forEach(sel => sel.addEventListener('change', () => {
+    t.assets[Number(sel.dataset.as)].s = sel.value;
+    t.assets[Number(sel.dataset.as)].at = new Date().toISOString();
+    saveAll(); renderAssets();
+  }));
+  $$('#wAssetList [data-ad]').forEach(b => b.addEventListener('click', () => {
+    t.assets.splice(Number(b.dataset.ad), 1); saveAll(); renderAssets();
+  }));
+}
+function addAssets(){
+  const t = targets.find(x => x.id === workTargetId);
+  if (!t) return;
+  let n = 0;
+  reconHosts($('#wAssetIn').value || '').forEach(h => {
+    if (!t.assets.some(a => a.h === h)) { t.assets.push({h:h, s:'untested', at:''}); n++; }
+  });
+  $('#wAssetIn').value = '';
+  saveAll(); renderAssets(); renderTargets();
+  toast(n + ' asset' + (n === 1 ? '' : 's') + ' added', n ? 'success' : 'info');
+}
+
+/* ===================== 22K. COMPLETENESS ===================== */
+function scoreReport(){
+  const has = id => !!$(id).value.trim();
+  const checks = [has('#fTitle'), has('#fDesc'), $('#fSteps').value.trim().length > 40, has('#fImpact'),
+    has('#fFix'), has('#fCvss'), has('#fCwe'), pendingAttachments.length > 0 || has('#fDrive') || has('#fPoc'),
+    has('#fTags'), has('#fRef')];
+  const pct = Math.round(checks.filter(Boolean).length / checks.length * 100);
+  $('#scoreBar').style.width = pct + '%';
+  $('#scoreTxt').textContent = pct + '% complete';
+  $('#scoreTxt').style.color = pct >= 80 ? 'var(--ok)' : pct >= 50 ? 'var(--med)' : 'var(--crit)';
+}
+
+/* ===================== 22L. ENCRYPTION ===================== */
+let sessionKey = null;
+async function deriveKey(pass){
+  const enc = new TextEncoder();
+  const base = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt:enc.encode('arise-v2-salt'), iterations:150000, hash:'SHA-256'},
+    base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+async function lockNotes(){
+  const pass = $('#lockPass').value;
+  if (pass.length < 8) { toast('Use at least 8 characters.', 'error'); return; }
+  try {
+    const key = await deriveKey(pass);
+    let n = 0;
+    for (const r of reports) {
+      if (!r.notes || (r.notes && r.notes.indexOf('ENC:') === 0)) continue;
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv:iv}, key, new TextEncoder().encode(r.notes));
+      r.notes = 'ENC:' + btoa(String.fromCharCode.apply(null, iv)) + ':' +
+        btoa(String.fromCharCode.apply(null, new Uint8Array(ct)));
+      n++;
+    }
+    sessionKey = key;
+    $('#lockPass').value = '';
+    $('#lockMeta').textContent = 'encrypted';
+    saveAll(); refreshAll();
+    toast(n + ' private note field(s) encrypted', 'success');
+  } catch (e) { toast('Encryption needs https or localhost.', 'error'); }
+}
+async function unlockNotes(){
+  const pass = $('#lockPass').value;
+  if (!pass) { toast('Enter your passphrase.', 'error'); return; }
+  try {
+    const key = await deriveKey(pass);
+    let n = 0, fail = 0;
+    for (const r of reports) {
+      if (!r.notes || r.notes.indexOf('ENC:') !== 0) continue;
+      try {
+        const parts = r.notes.split(':');
+        const iv = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
+        const ct = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
+        r.notes = new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM', iv:iv}, key, ct));
+        n++;
+      } catch (e) { fail++; }
+    }
+    $('#lockPass').value = '';
+    if (fail && !n) { toast('Wrong passphrase.', 'error'); return; }
+    sessionKey = key;
+    $('#lockMeta').textContent = 'unlocked';
+    saveAll(); refreshAll();
+    toast(n + ' note field(s) decrypted', 'success');
+  } catch (e) { toast('Could not decrypt.', 'error'); }
+}
+
+/* ===================== 22M. OPS ANALYTICS ===================== */
+function renderOpsTables(){
+  const ps = programStats();
+  const hrsFor = name => { const t = targets.find(x => x.name === name); return t ? targetHours(t) : 0; };
+  const repHrs = name => reports.filter(r => r.target === name).reduce((n, r) => n + (Number(r.hours) || 0), 0);
+  $('#ephTable').innerHTML = '<thead><tr><th>Program</th><th>Hours</th><th>Bounty</th><th>$/hour</th><th>Reports/hr</th><th>Assets left</th></tr></thead><tbody>' +
+    (ps.length ? ps.map(p => {
+      const h = hrsFor(p.name) + repHrs(p.name);
+      const t = targets.find(x => x.name === p.name);
+      const left = t ? (t.assets || []).filter(a => a.s === 'untested').length : 0;
+      return '<tr><td><strong>' + esc(p.name) + '</strong></td><td class="mono">' + h.toFixed(1) + '</td>' +
+        '<td class="mono money">' + fmtMoney(p.bounty) + '</td><td class="mono" style="color:var(--cy)">' +
+        (h ? fmtMoney(Math.round(p.bounty / h)) : '—') + '</td><td class="mono">' + (h ? (p.total / h).toFixed(2) : '—') +
+        '</td><td class="mono">' + left + '</td></tr>';
+    }).join('') : '<tr><td colspan="6" style="color:var(--muted)">Log hours with the timer to see this.</td></tr>') + '</tbody>';
+
+  const cls = {};
+  reports.forEach(r => {
+    cls[r.type] = cls[r.type] || {n:0, a:0, x:0, b:0};
+    cls[r.type].n++;
+    if (r.status === 'Accepted') cls[r.type].a++;
+    if (r.status === 'Rejected') cls[r.type].x++;
+    cls[r.type].b += Number(r.bounty) || 0;
+  });
+  const ck = Object.keys(cls).sort((a, b) => cls[b].n - cls[a].n);
+  $('#classTable').innerHTML = '<thead><tr><th>Class</th><th>Filed</th><th>Accepted</th><th>Rejected</th><th>Win rate</th><th>Bounty</th></tr></thead><tbody>' +
+    (ck.length ? ck.map(k => {
+      const c = cls[k], resp = c.a + c.x;
+      return '<tr><td>' + esc(k) + '</td><td class="mono">' + c.n + '</td><td class="mono">' + c.a + '</td><td class="mono">' + c.x +
+        '</td><td class="mono">' + (resp ? Math.round(c.a / resp * 100) : 0) + '%</td><td class="mono money">' + fmtMoney(c.b) + '</td></tr>';
+    }).join('') : '<tr><td colspan="6" style="color:var(--muted)">No reports yet.</td></tr>') + '</tbody>';
+
+  const days = (a, b) => (a && b) ? Math.max(0, Math.round((new Date(b) - new Date(a)) / 86400000)) : null;
+  const rows = reports.filter(r => r.triagedAt || r.resolvedAt || r.paidAt);
+  const avg = f => { const v = rows.map(f).filter(x => x !== null); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : '—'; };
+  $('#respTable').innerHTML = '<thead><tr><th>Metric</th><th>Average days</th><th>Sample</th></tr></thead><tbody>' +
+    '<tr><td>Report → triage</td><td class="mono">' + avg(r => days(r.date, r.triagedAt)) + '</td><td class="mono">' + rows.filter(r => r.triagedAt).length + '</td></tr>' +
+    '<tr><td>Report → resolved</td><td class="mono">' + avg(r => days(r.date, r.resolvedAt)) + '</td><td class="mono">' + rows.filter(r => r.resolvedAt).length + '</td></tr>' +
+    '<tr><td>Report → paid</td><td class="mono">' + avg(r => days(r.date, r.paidAt)) + '</td><td class="mono">' + rows.filter(r => r.paidAt).length + '</td></tr>' +
+    '</tbody>';
+}
+
+
+/* ===================== 22N. GMAIL INBOX SCANNER ===================== */
+let gmToken = localStorage.getItem('sl_gmail_token') || '';
+let gmMatches = [];
+const GM_SENDERS = 'hackerone.com OR bugcrowd.com OR intigriti.com OR yeswehack.com OR openbugbounty.org OR security';
+function setGm(msg, on){
+  $('#gmStatus').textContent = msg;
+  $('#gmDot').className = 'dot' + (on ? ' on' : '');
+  $('#gmMeta').textContent = gmToken ? 'connected' : 'not connected';
+}
+function gmConnect(prompt){
+  const c = gdConfig();
+  if (!c.clientId) { toast('Add your Google client ID in the Drive section first.', 'error'); return; }
+  if (!window.google || !google.accounts || !google.accounts.oauth2) { toast('Google Identity did not load.', 'error'); return; }
+  google.accounts.oauth2.initTokenClient({
+    client_id:c.clientId,
+    scope:'https://www.googleapis.com/auth/gmail.readonly',
+    callback: r => {
+      if (r && r.access_token) {
+        gmToken = r.access_token;
+        localStorage.setItem('sl_gmail_token', gmToken);
+        setGm('Connected — ready to scan', true);
+        toast('Gmail connected', 'success');
+        gmScan();
+      } else { toast('Google returned no token.', 'error'); }
+    }
+  }).requestAccessToken({prompt: prompt || ''});
+}
+function parseStatus(text){
+  const t = text.toLowerCase();
+  const money = text.match(/\$\s?([\d,]+(?:\.\d{2})?)/);
+  const bounty = money ? Number(money[1].replace(/,/g,'')) : 0;
+  if (/duplicate/.test(t)) return {status:'Rejected', tag:'duplicate', bounty:0};
+  if (/informative|not applicable|\bn\/a\b|out of scope|won'?t fix|spam/.test(t)) return {status:'Rejected', tag:'informative', bounty:0};
+  if (/bounty|awarded|reward|payment|paid/.test(t) && bounty) return {status:'Accepted', bounty:bounty, paid:true};
+  if (/resolved|fixed|closed as resolved/.test(t)) return {status:'Accepted', resolved:true, bounty:bounty};
+  if (/accepted|valid|confirmed/.test(t)) return {status:'Accepted', bounty:bounty};
+  if (/triaged|under review|being reviewed|escalat/.test(t)) return {status:'In Progress', triaged:true};
+  return null;
+}
+function matchReport(text){
+  const t = text.toLowerCase();
+  let best = null, bestScore = 0;
+  reports.forEach(r => {
+    let score = 0;
+    if (r.ref && t.indexOf(r.ref.toLowerCase()) > -1) score += 10;
+    const words = r.title.toLowerCase().split(/\W+/).filter(w => w.length > 3);
+    words.forEach(w => { if (t.indexOf(w) > -1) score++; });
+    if (r.target && t.indexOf(r.target.toLowerCase()) > -1) score += 1;
+    if (score > bestScore) { bestScore = score; best = r; }
+  });
+  return bestScore >= 3 ? best : null;
+}
+async function gmScan(){
+  if (!gmToken) { toast('Connect Gmail first.', 'error'); return; }
+  setGm('Scanning…', true);
+  $('#gmResults').innerHTML = '<div class="hint">Reading messages…</div>';
+  try {
+    const q = encodeURIComponent('from:(' + GM_SENDERS + ') newer_than:' + $('#gmDays').value + 'd');
+    const list = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=60&q=' + q,
+      {headers:{Authorization:'Bearer ' + gmToken}});
+    if (list.status === 401) { gmToken = ''; localStorage.removeItem('sl_gmail_token'); setGm('Token expired — reconnect', false); toast('Gmail token expired.', 'warning'); return; }
+    if (!list.ok) throw new Error('list');
+    const j = await list.json();
+    if (!j.messages || !j.messages.length) { $('#gmResults').innerHTML = '<div class="hint">No platform mail in that window.</div>'; setGm('Scan complete — nothing found', true); return; }
+    gmMatches = [];
+    for (const m of j.messages.slice(0, 40)) {
+      const d = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/' + m.id +
+        '?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date',
+        {headers:{Authorization:'Bearer ' + gmToken}});
+      if (!d.ok) continue;
+      const msg = await d.json();
+      const hs = {};
+      ((msg.payload && msg.payload.headers) || []).forEach(h => { hs[h.name.toLowerCase()] = h.value; });
+      const text = (hs.subject || '') + ' ' + (msg.snippet || '');
+      const st = parseStatus(text);
+      if (!st) continue;
+      const rep = matchReport(text);
+      if (!rep) continue;
+      const when = hs.date ? new Date(hs.date) : new Date();
+      gmMatches.push({rid:rep.id, title:rep.title, subject:hs.subject || '(no subject)',
+        from:(hs.from || '').replace(/.*<|>.*/g,''), date:dayKey(when), st:st});
+    }
+    renderGmMatches();
+    setGm('Scan complete · ' + gmMatches.length + ' update(s) found', true);
+    lsSet('sl_gm_last', new Date().toISOString());
+    if ($('#gmApply').checked && gmMatches.length) applyGmMatches();
+  } catch (e) {
+    setGm('Scan failed — reconnect and retry', false);
+    $('#gmResults').innerHTML = '<div class="hint">Could not read the mailbox. Confirm the Gmail API is enabled and your address is a test user on the consent screen.</div>';
+  }
+}
+function renderGmMatches(){
+  if (!gmMatches.length) { $('#gmResults').innerHTML = '<div class="hint">No messages matched a report in your archive.</div>'; return; }
+  $('#gmResults').innerHTML = '<div class="ach-cat">Proposed updates · ' + gmMatches.length + '</div>' +
+    gmMatches.map((m, i) => '<div class="nudge"><span>✉</span><div style="flex:1;min-width:0">' +
+      '<b>' + esc(m.title) + '</b><div class="mono" style="font-size:11px;color:var(--muted)">' +
+      esc(m.subject.slice(0, 70)) + ' · ' + esc(m.from) + '</div>' +
+      '<div class="mono" style="font-size:11px;color:var(--cy)">→ ' + esc(m.st.status) +
+      (m.st.bounty ? ' · ' + fmtMoney(m.st.bounty) : '') + (m.st.tag ? ' · ' + esc(m.st.tag) : '') + '</div></div>' +
+      '<button class="btn btn-sm" data-gmone="' + i + '">Apply</button></div>').join('') +
+    '<div class="btn-row" style="margin-top:10px"><button class="btn btn-primary btn-sm" id="gmApplyAll">Apply all ' +
+      gmMatches.length + '</button><button class="btn btn-sm btn-ghost" id="gmDismiss">Dismiss</button></div>';
+  $$('#gmResults [data-gmone]').forEach(b => b.addEventListener('click', () => applyGmMatches(Number(b.dataset.gmone))));
+  $('#gmApplyAll').addEventListener('click', () => applyGmMatches());
+  $('#gmDismiss').addEventListener('click', () => { gmMatches = []; $('#gmResults').innerHTML = ''; });
+}
+function applyGmMatches(only){
+  const set = only === undefined ? gmMatches : [gmMatches[only]];
+  let n = 0;
+  set.forEach(m => {
+    const r = reports.find(x => x.id === m.rid);
+    if (!r) return;
+    if (m.st.status && r.status !== m.st.status) r.status = m.st.status;
+    if (m.st.triaged && !r.triagedAt) r.triagedAt = m.date;
+    if (m.st.resolved && !r.resolvedAt) r.resolvedAt = m.date;
+    if (m.st.bounty) { r.bounty = m.st.bounty; if (m.st.paid && !r.paidAt) r.paidAt = m.date; }
+    if (m.st.tag && r.tags.indexOf(m.st.tag) === -1) r.tags.push(m.st.tag);
+    r.updated = new Date().toISOString();
+    n++;
+    notify('Inbox update — ' + r.title + ' → ' + r.status + (r.bounty ? ' · ' + fmtMoney(r.bounty) : ''), true);
+  });
+  if (only === undefined) gmMatches = []; else gmMatches.splice(only, 1);
+  saveAll(); refreshAll(true); renderGmMatches();
+  toast(n + ' report(s) updated from your inbox', 'success');
+}
+
+/* ===================== 22O. CLIPBOARD + RECON IMPORT + GOAL ===================== */
+function pasteImage(e){
+  if (!$('#reportModal').classList.contains('open')) return;
+  const items = (e.clipboardData && e.clipboardData.items) || [];
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf('image/') === 0) {
+      const f = items[i].getAsFile();
+      if (!f) continue;
+      e.preventDefault();
+      compressImage(f, data => {
+        pendingAttachments.push({name:'pasted-' + Date.now() + '.png', type:'image/png', size:data.length, data:data});
+        renderAttachments(); scoreReport();
+        toast('Screenshot pasted', 'success');
+      });
+      return;
+    }
+  }
+}
+function compressImage(file, cb){
+  const fr = new FileReader();
+  fr.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 1400;
+      const sc = Math.min(1, max / Math.max(img.width, img.height));
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      cb(cv.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = () => cb(ev.target.result);
+    img.src = ev.target.result;
+  };
+  fr.readAsDataURL(file);
+}
+function reconHosts(text){
+  const out = [];
+  text.split(/\r?\n/).forEach(line => {
+    const l = line.trim();
+    if (!l) return;
+    if (l.charAt(0) === '{') {
+      try {
+        const o = JSON.parse(l);
+        const h = o.host || o.url || o.input || o.matched_at || o.domain || o.name;
+        if (h) out.push(String(h).replace(/^https?:\/\//,'').replace(/[\/:].*$/,''));
+        return;
+      } catch (e) {}
+    }
+    out.push(l.replace(/^https?:\/\//,'').replace(/[\/:,\s].*$/,''));
+  });
+  return out.filter(Boolean);
+}
+function renderGoal(){
+  const goal = Number(profile.goal) || 0;
+  const m = todayISO().slice(0,7);
+  const got = sumBounty(reports.filter(r => (r.paidAt || r.date || '').slice(0,7) === m));
+  $('#heroGoal').textContent = goal ? fmtMoney(got) + ' / ' + fmtMoney(goal) : '—';
+  $('#goalBar').style.width = goal ? Math.min(100, (got / goal) * 100) + '%' : '0';
+}
+
 /* ============================================================
    23. REFRESH + EVENTS + BOOT
    ============================================================ */
@@ -3594,11 +4725,14 @@ function refreshAll(announce){
   renderKanban();
   renderTargets();
   renderRadar();
+  renderNotebook();
   renderHof();
   renderSyncPanel();
   checkAchievements(announce);
   renderAchievements();
   renderAnalyticsTables();
+  renderOpsTables();
+  renderNudges();
   renderCharts();
   fbAutoPush();
   autoSyncAll();
@@ -3614,6 +4748,24 @@ $('#themeToggle').addEventListener('click', toggleTheme);
 $('#themeToggle2').addEventListener('click', toggleTheme);
 $('#newReportBtn').addEventListener('click', () => openReportModal(null));
 $('#cmdkBtn').addEventListener('click', openCmdk);
+$('#navSearchBtn').addEventListener('click', openCmdk);
+$('#timerPill').addEventListener('click', () => toggleTimer(null));
+$('#wTimer').addEventListener('click', () => toggleTimer(workTargetId));
+$('#wAssetAdd').addEventListener('click', addAssets);
+$('#nSave').addEventListener('click', saveNCfg);
+$('#gmConnect').addEventListener('click', () => gmConnect(''));
+$('#gmSwitch').addEventListener('click', () => gmConnect('select_account'));
+$('#gmScan').addEventListener('click', gmScan);
+$('#gmAuto').addEventListener('change', e => lsSet('sl_gm_auto', e.target.checked));
+$('#gmApply').addEventListener('change', e => lsSet('sl_gm_apply', e.target.checked));
+$('#gmAccounts').addEventListener('change', e => lsSet('sl_gm_accounts', e.target.value));
+document.addEventListener('paste', pasteImage);
+$('#nTest').addEventListener('click', () => notify('Test ping — channels are wired up correctly.', false));
+$('#nDigest').addEventListener('click', emailDigest);
+$('#lockBtn').addEventListener('click', lockNotes);
+$('#unlockBtn').addEventListener('click', unlockNotes);
+['#fTitle','#fDesc','#fSteps','#fImpact','#fFix','#fCvss','#fCwe','#fTags','#fRef','#fDrive','#fPoc']
+  .forEach(x => $(x).addEventListener('input', debounce(scoreReport, 200)));
 $('#luClose').addEventListener('click', () => $('#levelup').classList.remove('show'));
 $('#levelup').addEventListener('click', e => { if (e.target.id === 'levelup') $('#levelup').classList.remove('show'); });
 
@@ -3714,10 +4866,41 @@ $('#fbSaveBtn').addEventListener('click', () => { fbSaveConfig(); fbWatchAuth();
 $('#fbTestBtn').addEventListener('click', fbTest);
 $('#fbSyncBtn').addEventListener('click', () => fbPush(false));
 $('#fbPullBtn').addEventListener('click', () => fbPull(false));
-$('#fbSignUpBtn').addEventListener('click', () => fbAuthAction('up'));
 $('#fbSignInBtn').addEventListener('click', () => fbAuthAction('in'));
 $('#fbSignOutBtn').addEventListener('click', fbSignOut);
 $('#fbMergeBtn').addEventListener('click', fbMerge);
+$('#fbAllowSave').addEventListener('click', () => {
+  const list = $('#fbAllowed').value.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  lsSet('sl_allowed_emails', list);
+  toast(list.length ? list.length + ' email(s) allowed' : 'Allowlist cleared — any project account can enter', 'success');
+});
+
+/* notebook */
+$('#nbDoc').addEventListener('input', () => { updateNbCount(); $('#nbSaved').textContent = 'saving…'; nbSave(); });
+$('#nbDoc').addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); nbSave(); toast('Notes saved', 'success'); }
+});
+$('#nbJump').addEventListener('change', e => { if (e.target.value) selectNotebook(e.target.value); });
+$('#nbSearch').addEventListener('input', debounce(nbSearch, 200));
+$('#nbLogBtn').addEventListener('click', nbAddLogEntry);
+$('#nbExportBtn').addEventListener('click', () => {
+  const t = targets.find(x => x.id === nbCurrent);
+  if (!t) { toast('Pick a program first.', 'warning'); return; }
+  download('notes-' + slug(t.name) + '.md', notebookMd(t), 'text/markdown');
+  toast('Notes exported', 'success');
+});
+$('#nbExportAllBtn').addEventListener('click', () => {
+  if (!targets.length) { toast('No programs yet.', 'warning'); return; }
+  download('all-notes-' + todayISO() + '.md', targets.map(notebookMd).join('\n\n---\n\n'), 'text/markdown');
+  toast('All notes exported', 'success');
+});
+
+/* achievement filter */
+$$('[data-afilter]').forEach(b => b.addEventListener('click', () => {
+  achFilter = b.dataset.afilter;
+  $$('[data-afilter]').forEach(x => x.classList.toggle('active', x === b));
+  renderAchievements();
+}));
 
 /* auth gate */
 $$('.gate-tab').forEach(t => t.addEventListener('click', () => setGateTab(t.dataset.gtab)));
@@ -3798,6 +4981,9 @@ $('#cmdkInput').addEventListener('keydown', e => {
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeAll(); $('#levelup').classList.remove('show'); return; }
+  const tag = (e.target && e.target.tagName || '').toLowerCase();
+  const typing = tag === 'input' || tag === 'textarea' || tag === 'select';
+  if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey) { e.preventDefault(); openCmdk(); return; }
   if (!(e.ctrlKey || e.metaKey)) return;
   const k = e.key.toLowerCase();
   if (k === 'k') { e.preventDefault(); openCmdk(); }
@@ -3822,6 +5008,14 @@ window.addEventListener('resize', () => {
   loadProfileForm();
   loadGdForm();
   loadFbForm();
+  loadNCfg();
+  $('#gmAuto').checked = lsGet('sl_gm_auto', false);
+  $('#gmApply').checked = lsGet('sl_gm_apply', false);
+  $('#gmAccounts').value = lsGet('sl_gm_accounts', 'bugbountyankit@gmail.com, hackerankit2025@gmail.com, ankitfree2025@gmail.com');
+  setGm(gmToken ? 'Connected — ready to scan' : 'Gmail not connected', !!gmToken);
+  if (gmToken && lsGet('sl_gm_auto', false)) setTimeout(gmScan, 6000);
+  timerTick();
+  setInterval(timerTick, 1000);
   setVaultStatus();
   renderSnapshots();
   calcCvss();
@@ -3833,6 +5027,8 @@ window.addEventListener('resize', () => {
   renderSources();
   renderSyncPanel();
   $('#gateEmail').value = lsGet('sl_last_email', '') || KNOWN_EMAIL;
+  $('#fbAllowed').value = allowList().join(', ');
+  if (!lsGet('sl_allowed_emails', null)) lsSet('sl_allowed_emails', [KNOWN_EMAIL]);
   if (typeof firebase !== 'undefined' && firebase.auth && fbConfig().apiKey) {
     gateShow();
     gateStatus('connecting…', false);
@@ -3844,6 +5040,10 @@ window.addEventListener('resize', () => {
     gateStatus('cloud unavailable — use this device only', false);
   }
   setTimeout(() => makeSnapshot(false), 4000);
+  setTimeout(() => {
+    const st = staleReports();
+    if (st.length && nCfg().stale !== false) notify(st.length + ' report(s) have gone 14+ days without triage.', true);
+  }, 12000);
   if (gdAuto && gdToken) {
     const last = profile._driveAt ? new Date(profile._driveAt).getTime() : 0;
     if (Date.now() - last > 86400000) setTimeout(() => gdBackup(true), 8000);
