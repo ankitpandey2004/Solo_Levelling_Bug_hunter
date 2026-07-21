@@ -903,6 +903,11 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
         <button class="btn btn-sm" id="exportCsvBtn">⬇ CSV</button>
         <button class="btn btn-sm" id="exportMdBtn">⬇ Markdown</button>
         <button class="btn btn-sm btn-ghost" id="clearFiltersBtn">Reset filters</button>
+        <button class="btn btn-sm" id="bulkBtn">☑ Select mode</button>
+        <span id="bulkBar" style="display:none"><select id="bulkStatus" style="width:auto;display:inline-block"><option value="">Set status…</option></select>
+        <button class="btn btn-sm" id="bulkApply">Apply</button>
+        <button class="btn btn-sm btn-danger" id="bulkDel">Delete selected</button>
+        <span class="mono" id="bulkCount" style="font-size:11px;color:var(--muted)"></span></span>
       </div>
       <div id="reportsArea"></div>
     </div>
@@ -1216,6 +1221,7 @@ Recon notes, endpoint maps, credentials layout, ideas to revisit, dead ends wort
       </div>
       <div class="grid2">
         <div class="field"><label>Mailboxes to scan</label><input id="gmAccounts" placeholder="a@gmail.com, b@gmail.com"></div>
+        <div class="field"><label>Import from this mailbox</label><select id="gmAccount"></select></div>
         <div class="field"><label>Look back</label><select id="gmDays"><option value="30">30 days</option><option value="60" selected>60 days</option><option value="120">120 days</option><option value="365">1 year</option></select></div>
       </div>
       <div class="btn-row" style="margin-bottom:12px">
@@ -2214,11 +2220,12 @@ function renderReports(){
   }
   const th = (k, l) => '<th class="sortable" data-sort="' + k + '">' + l +
     (sortKey === k ? (sortDir === 1 ? ' ▲' : ' ▼') : '') + '</th>';
-  area.innerHTML = '<div class="table-wrap"><table><thead><tr>' +
+  area.innerHTML = '<div class="table-wrap"><table><thead><tr>' + (bulkMode ? '<th><input type="checkbox" id="bulkAll" style="width:auto"></th>' : '') +
     th('title','Title') + th('target','Target') + th('type','Type') + th('severity','Severity') +
     th('status','Status') + th('bounty','Bounty') + th('date','Date') + '<th>Actions</th></tr></thead><tbody>' +
     rows.map(r =>
-      '<tr><td><strong>' + esc(r.title) + '</strong>' +
+      '<tr>' + (bulkMode ? '<td><input type="checkbox" data-bulk="' + r.id + '" style="width:auto"></td>' : '') +
+      '<td><strong>' + esc(r.title) + '</strong>' +
         (r.attachments && r.attachments.length ? ' <span class="mono" style="color:var(--dim);font-size:11px">📎' + r.attachments.length + '</span>' : '') +
       '</td>' +
       '<td>' + esc(r.target) + '</td><td>' + esc(r.type) + '</td>' +
@@ -2240,6 +2247,15 @@ function renderReports(){
     else if (a === 'dup') duplicateReport(id);
     else deleteReport(id);
   }));
+  if (bulkMode) {
+    $$('#reportsArea [data-bulk]').forEach(c => c.addEventListener('change', bulkCount));
+    const all = $('#bulkAll');
+    if (all) all.addEventListener('change', () => {
+      $$('#reportsArea [data-bulk]').forEach(c => { c.checked = all.checked; });
+      bulkCount();
+    });
+    bulkCount();
+  }
   $$('#reportsArea th.sortable').forEach(h => h.addEventListener('click', () => {
     const k = h.dataset.sort;
     if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = k === 'date' || k === 'bounty' || k === 'severity' ? -1 : 1; }
@@ -4608,11 +4624,12 @@ function gmConnect(prompt){
         gmToken = r.access_token;
         localStorage.setItem('sl_gmail_token', gmToken);
         setGm('Connected — ready to scan', true);
+        gmWhoAmI();
         toast('Gmail connected', 'success');
         gmScan();
       } else { toast('Google returned no token.', 'error'); }
     }
-  }).requestAccessToken({prompt: prompt || ''});
+  }).requestAccessToken({prompt: prompt || '', hint: $('#gmAccount').value || undefined});
 }
 function parseStatus(text){
   const t = text.toLowerCase();
@@ -5016,6 +5033,36 @@ function doImport(only){
   toast(n + ' report(s) imported', 'success');
 }
 
+
+/* ===================== BULK ACTIONS + ACCOUNT PICKER ===================== */
+let bulkMode = false;
+function fillGmAccounts(){
+  const list = ($('#gmAccounts').value || '').split(',').map(e => e.trim()).filter(Boolean);
+  const sel = $('#gmAccount'), cur = sel.value;
+  sel.innerHTML = list.length ? list.map(e => '<option>' + esc(e) + '</option>').join('')
+    : '<option value="">— add addresses above —</option>';
+  if (list.indexOf(cur) > -1) sel.value = cur;
+}
+async function gmWhoAmI(){
+  if (!gmToken) return;
+  try {
+    const r = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {headers:{Authorization:'Bearer ' + gmToken}});
+    if (!r.ok) return;
+    const j = await r.json();
+    if (j.emailAddress) { setGm('Connected as ' + j.emailAddress, true); lsSet('sl_gm_current', j.emailAddress); }
+  } catch (e) {}
+}
+function toggleBulk(){
+  bulkMode = !bulkMode;
+  $('#bulkBar').style.display = bulkMode ? '' : 'none';
+  $('#bulkBtn').textContent = bulkMode ? '✕ Exit select' : '☑ Select mode';
+  const bs = $('#bulkStatus');
+  if (bs && bs.options.length < 2) bs.innerHTML = '<option value="">Set status…</option>' + STATUSES.map(x => '<option>' + x + '</option>').join('');
+  renderReports();
+}
+function bulkIds(){ return $$('#reportsArea [data-bulk]:checked').map(c => c.dataset.bulk); }
+function bulkCount(){ const n = bulkIds().length; $('#bulkCount').textContent = n + ' selected'; }
+
 /* ============================================================
    23. REFRESH + EVENTS + BOOT
    ============================================================ */
@@ -5064,6 +5111,27 @@ $('#gmConnect').addEventListener('click', () => gmConnect(''));
 $('#gmSwitch').addEventListener('click', () => gmConnect('select_account'));
 $('#gmScan').addEventListener('click', gmScan);
 $('#gmImport').addEventListener('click', gmImportPast);
+$('#gmAccounts').addEventListener('input', debounce(fillGmAccounts, 400));
+$('#gmAccount').addEventListener('change', () => {
+  toast('Click Connect Gmail to switch to ' + $('#gmAccount').value, 'info');
+});
+$('#bulkBtn').addEventListener('click', toggleBulk);
+$('#bulkDel').addEventListener('click', () => {
+  const ids = bulkIds();
+  if (!ids.length) { toast('Nothing selected.', 'warning'); return; }
+  confirmDialog('Delete reports', 'Permanently remove ' + ids.length + ' report(s)?', () => {
+    reports = reports.filter(r => ids.indexOf(r.id) === -1);
+    saveAll(); refreshAll();
+    toast(ids.length + ' deleted', 'success');
+  });
+});
+$('#bulkApply').addEventListener('click', () => {
+  const v = $('#bulkStatus').value, ids = bulkIds();
+  if (!v || !ids.length) { toast('Pick a status and some rows.', 'warning'); return; }
+  reports.forEach(r => { if (ids.indexOf(r.id) > -1) { r.status = v; r.updated = new Date().toISOString(); } });
+  saveAll(); refreshAll();
+  toast(ids.length + ' updated to ' + v, 'success');
+});
 $('#gmAuto').addEventListener('change', e => lsSet('sl_gm_auto', e.target.checked));
 $('#gmApply').addEventListener('change', e => lsSet('sl_gm_apply', e.target.checked));
 $('#gmAccounts').addEventListener('change', e => lsSet('sl_gm_accounts', e.target.value));
@@ -5342,6 +5410,8 @@ window.addEventListener('resize', () => {
   $('#gmApply').checked = lsGet('sl_gm_apply', true);
   $('#gmAccounts').value = lsGet('sl_gm_accounts', 'bugbountyankit@gmail.com, hackerankit2025@gmail.com, ankitfree2025@gmail.com');
   setGm(gmToken ? 'Connected — ready to scan' : 'Gmail not connected', !!gmToken);
+  fillGmAccounts();
+  gmWhoAmI();
   if (gmToken && lsGet('sl_gm_auto', true)) {
     setTimeout(gmScan, 5000);
     setInterval(() => { if (gmToken && $('#gmAuto').checked) gmScan(); }, 1800000);
