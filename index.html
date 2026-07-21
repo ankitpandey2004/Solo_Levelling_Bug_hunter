@@ -1274,6 +1274,16 @@ Recon notes, endpoint maps, credentials layout, ideas to revisit, dead ends wort
       </div>
     </div>
 
+    <div class="sys gold">
+      <div class="sys-head"><h3>Recycle Bin</h3><span class="meta" id="trashMeta"></span></div>
+      <div class="note">Deleted reports and programs land here and stay until you remove them. They never sync back on their own — only <b>Backup all</b> brings everything back, including these.</div>
+      <div class="btn-row" style="margin-bottom:12px">
+        <button class="btn btn-primary" id="restoreAllBtn">♻ Backup all (restore everything)</button>
+        <button class="btn btn-danger" id="emptyTrashBtn">🗑 Empty recycle bin</button>
+      </div>
+      <div id="trashList"></div>
+    </div>
+
     <div class="sys">
       <div class="sys-head"><h3>Data Management</h3></div>
       <div class="btn-row">
@@ -1351,9 +1361,9 @@ Recon notes, endpoint maps, credentials layout, ideas to revisit, dead ends wort
         <button class="btn btn-danger" id="fbSignOutBtn">Sign out</button>
       </div>
       <div class="btn-row" style="margin-bottom:14px">
-        <button class="btn" id="fbSyncBtn">↑ Push to cloud</button>
-        <button class="btn" id="fbPullBtn">↓ Pull (replace)</button>
-        <button class="btn btn-primary" id="fbMergeBtn">⇅ Pull &amp; merge</button>
+        <button class="btn btn-primary" id="fbSyncBtn">↑ Backup to cloud now</button>
+        <button class="btn btn-gold" id="fbPullBtn">↓ Restore from cloud</button>
+        <button class="btn" id="fbMergeBtn">⇅ Merge (adds back deleted)</button>
         <label style="display:flex;align-items:center;gap:8px;margin:0;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text);cursor:pointer">
           <input type="checkbox" id="fbAuto" style="width:auto"> Auto-sync every change
         </label>
@@ -1676,6 +1686,7 @@ const DEFAULT_TARGETS = [
   {id:'t_int', name:'Intigriti', platform:'Intigriti', url:'https://intigriti.com', notes:'EU-heavy programs, fast triage.'}
 ];
 
+let trash = [];
 let reports = [], targets = [], hof = [], radar = [], profile = {}, achState = {}, snapshots = [];
 let workTargetId = null;
 let currentPage = 'dashboard', pendingAttachments = [], editingId = null, confirmAction = null;
@@ -1856,12 +1867,14 @@ const persist = debounce(async function () {
   await idbSet(K.targets, targets);
   await idbSet(K.hof, hof);
   await idbSet(K.radar, radar);
+  await idbSet('sl_trash', trash);
   await idbSet(K.profile, profile);
   await idbSet(K.ach, achState);
   lsSet(K.targets, targets);
   lsSet(K.profile, profile);
   lsSet(K.hof, hof);
   lsSet(K.radar, radar);
+  lsSet('sl_trash', trash);
   lsSet(K.ach, achState);
   if (!lsSet(K.reports, reports)) lsSet(K.reports, reports.map(r => Object.assign({}, r, {attachments:[]})));
   if (vaultHandle) vaultWrite(true);
@@ -1996,6 +2009,8 @@ async function loadAll(){
   achState = iA || lsGet(K.ach, {}) || {};
   snapshots = Array.isArray(iS) ? iS : [];
 
+  const iTr = await idbGet('sl_trash');
+  trash = Array.isArray(iTr) ? iTr : lsGet('sl_trash', []);
   const vh = await idbGet(K.vault);
   if (vh && vh.name) vaultHandle = vh;
 
@@ -2770,9 +2785,10 @@ function deleteReport(id){
   const r = reports.find(x => x.id === id);
   if (!r) return;
   confirmDialog('Delete report', 'Permanently remove "' + r.title + '" and its attachments?', () => {
+    trash.push({id:r.id, kind:'report', at:new Date().toISOString(), label:r.title, data:r});
     reports = reports.filter(x => x.id !== id);
-    saveAll(); refreshAll();
-    toast('Report deleted', 'success');
+    saveAll(); refreshAll(); renderTrash();
+    toast('Moved to recycle bin', 'success');
   });
 }
 
@@ -3029,7 +3045,7 @@ function saveProfileForm(){
 }
 function bundle(){
   return {app:'ARISE', version:2, exported:new Date().toISOString(),
-    reports:reports, targets:targets, hof:hof, radar:radar, profile:profile, achievements:achState,
+    reports:reports, targets:targets, hof:hof, radar:radar, trash:trash, profile:profile, achievements:achState,
     theme:lsGet(K.theme, 'dark')};
 }
 function exportData(){
@@ -3135,6 +3151,7 @@ function importBundle(o){
   if (Array.isArray(o.targets)) targets = o.targets.map(migrateTarget);
   if (Array.isArray(o.hof)) hof = o.hof.map(migrateHof);
   if (Array.isArray(o.radar)) radar = o.radar.map(migrateRadar);
+  if (Array.isArray(o.trash)) trash = o.trash;
   if (o.profile) { profile = o.profile; loadProfileForm(); }
   if (o.achievements) achState = o.achievements;
   if (o.theme) applyTheme(o.theme);
@@ -3187,7 +3204,7 @@ function seedDemo(){
    19. GOOGLE DRIVE
    ============================================================ */
 let gdToken = localStorage.getItem(K.gtoken) || '';
-let gdAuto = lsGet('sl_gd_auto', false);
+let gdAuto = false;
 /* OAuth client ID is a public identifier — safe in client code.
    The client secret is NOT used by this browser flow and must never be published. */
 const DEFAULT_GD = {clientId:'1083588084079-3fio74kku8ebd3r125lajiruac4588t7.apps.googleusercontent.com', apiKey:''};
@@ -3366,12 +3383,9 @@ function fbWatchAuth(){
       gateHide();
       gateStatus('authenticated', true);
       lsSet('sl_last_email', u.email || '');
-      /* always reconcile with the cloud on sign-in — a fresh device has nothing locally */
-      firebase.database().ref(fbPath()).once('value').then(snap => {
-        const v = snap.val();
-        if (v) { mergeBundle(v); setFb('Restored from cloud ' + new Date().toLocaleTimeString(), true); }
-        else if (reports.length || hof.length) { fbPush(true); }
-      }).catch(() => toast('Signed in, but the database refused the read — publish the rules in Firebase.', 'error'));
+      /* cloud mirrors this device — restoring is a manual choice */
+      if (reports.length || hof.length || targets.length) fbPush(true);
+      else toast('Signed in. Click "Restore from cloud" in Settings if you need your data.', 'info');
       renderSyncPanel();
     } else if (!window.__localOnly) {
       gateShow();
@@ -3397,6 +3411,10 @@ function fbPull(silent){
   }).catch(() => toast('Pull failed — check the database rules.', 'error'));
 }
 function mergeBundle(o){
+  const dead = {};
+  trash.forEach(t => { dead[t.id] = 1; });
+  if (o && Array.isArray(o.reports)) o.reports = o.reports.filter(r => !dead[r.id]);
+  if (o && Array.isArray(o.targets)) o.targets = o.targets.filter(t => !dead[t.id]);
   if (!o || typeof o !== 'object') { toast('Nothing usable in the cloud copy.', 'error'); return; }
   const stamp = r => new Date(r.updated || r.created || 0).getTime();
   let added = 0, updated = 0;
@@ -3448,7 +3466,7 @@ function fbMerge(){
     setFb('Merged ' + new Date().toLocaleTimeString(), true);
   }).catch(() => toast('Merge failed — check the database rules.', 'error'));
 }
-const fbAutoPush = debounce(() => { if (fbAuto && fbUser) fbPush(true); }, 2500);
+const fbAutoPush = debounce(() => { if (fbAuto && fbUser) fbPush(true); }, 1500);
 
 /* ============================================================
    21. COMMAND PALETTE
@@ -4087,10 +4105,7 @@ async function syncEverywhere(silent){
   const done = [];
   if (vaultHandle) { await vaultWrite(true); done.push('vault'); }
   if (fbUser && typeof firebase !== 'undefined') { fbPush(true); done.push('cloud'); }
-  if (gdToken) {
-    const last = profile._driveAt ? new Date(profile._driveAt).getTime() : 0;
-    if (Date.now() - last > 3600000) { await gdBackup(true); done.push('drive'); }
-  }
+  if (gdToken && !silent) { await gdBackup(true); done.push('drive'); }
   renderSyncPanel();
   if (!silent) toast(done.length ? 'Synced to ' + done.join(', ') : 'Nothing connected yet — sign in or link a vault.', done.length ? 'success' : 'warning');
 }
@@ -4933,6 +4948,7 @@ function renderTargets(){
     });
   });
   $('#tdDel').addEventListener('click', () => confirmDialog('Delete target', 'Remove "' + t.name + '"? Reports keep their label.', () => {
+    trash.push({id:t.id, kind:'target', at:new Date().toISOString(), label:t.name, data:t});
     targets = targets.filter(x => x.id !== t.id);
     tView = {lvl:1, plat:t.platform, tid:null};
     saveAll(); renderTargets(); fillSelects(); toast('Target deleted', 'success');
@@ -5162,6 +5178,48 @@ function toggleBulk(){
   renderReports();
 }
 
+
+function renderTrash(){
+  const box = $('#trashList');
+  if (!box) return;
+  $('#trashMeta').textContent = trash.length + ' item' + (trash.length === 1 ? '' : 's');
+  if (!trash.length) { box.innerHTML = '<div class="hint">Recycle bin is empty.</div>'; return; }
+  box.innerHTML = trash.slice().reverse().map(t =>
+    '<div class="nudge"><span>' + (t.kind === 'target' ? '◎' : '🐞') + '</span>' +
+    '<div style="flex:1;min-width:0"><b>' + esc(t.label || t.id) + '</b>' +
+    '<div class="mono" style="font-size:11px;color:var(--muted)">' + esc(t.kind) + ' · deleted ' +
+    new Date(t.at).toLocaleString() + '</div></div>' +
+    '<button class="btn btn-sm" data-tres="' + esc(t.id) + '">Restore</button>' +
+    '<button class="btn btn-sm btn-danger" data-tdel="' + esc(t.id) + '">Delete forever</button></div>').join('');
+  $$('#trashList [data-tres]').forEach(b => b.addEventListener('click', () => restoreTrash(b.dataset.tres)));
+  $$('#trashList [data-tdel]').forEach(b => b.addEventListener('click', () => {
+    trash = trash.filter(x => x.id !== b.dataset.tdel);
+    saveAll(); renderTrash(); toast('Removed permanently', 'success');
+  }));
+}
+function restoreTrash(id){
+  const t = trash.find(x => x.id === id);
+  if (!t) return;
+  if (t.kind === 'report') reports.unshift(migrate(t.data));
+  else if (t.kind === 'target') targets.push(migrateTarget(t.data));
+  trash = trash.filter(x => x.id !== id);
+  saveAll(); fillSelects(); refreshAll(); renderTrash();
+  toast('Restored ' + (t.label || ''), 'success');
+}
+function restoreAll(){
+  if (!trash.length) { toast('Recycle bin is empty.', 'info'); return; }
+  confirmDialog('Backup all', 'Restore all ' + trash.length + ' deleted item(s) back into the dashboard?', () => {
+    trash.forEach(t => {
+      if (t.kind === 'report') reports.unshift(migrate(t.data));
+      else if (t.kind === 'target') targets.push(migrateTarget(t.data));
+    });
+    const n = trash.length;
+    trash = [];
+    saveAll(); fillSelects(); refreshAll(); renderTrash();
+    toast(n + ' item(s) restored', 'success');
+  });
+}
+
 /* ============================================================
    23. REFRESH + EVENTS + BOOT
    ============================================================ */
@@ -5219,9 +5277,10 @@ $('#bulkDel').addEventListener('click', () => {
   const ids = bulkIds();
   if (!ids.length) { toast('Nothing selected.', 'warning'); return; }
   confirmDialog('Delete reports', 'Permanently remove ' + ids.length + ' report(s)?', () => {
+    reports.forEach(r => { if (ids.indexOf(r.id) > -1) trash.push({id:r.id, kind:'report', at:new Date().toISOString(), label:r.title, data:r}); });
     reports = reports.filter(r => ids.indexOf(r.id) === -1);
-    saveAll(); refreshAll();
-    toast(ids.length + ' deleted', 'success');
+    saveAll(); refreshAll(); renderTrash();
+    toast(ids.length + ' moved to recycle bin', 'success');
   });
 });
 $('#bulkApply').addEventListener('click', () => {
@@ -5442,6 +5501,11 @@ $('#radarClearBtn').addEventListener('click', () => {
 
 /* sync everywhere */
 $('#syncNowBtn').addEventListener('click', () => syncEverywhere(false));
+$('#restoreAllBtn').addEventListener('click', restoreAll);
+$('#emptyTrashBtn').addEventListener('click', () => confirmDialog('Empty recycle bin',
+  'Permanently remove all ' + trash.length + ' item(s)? This cannot be undone.', () => {
+    trash = []; saveAll(); renderTrash(); toast('Recycle bin emptied', 'success');
+  }));
 $('#syncAllToggle').addEventListener('change', e => {
   syncAllOn = e.target.checked;
   lsSet('sl_sync_all', syncAllOn);
@@ -5519,6 +5583,7 @@ window.addEventListener('resize', () => {
   setInterval(timerTick, 1000);
   setVaultStatus();
   renderSnapshots();
+  renderTrash();
   calcCvss();
   lastRank = rankFor(totalXP()).r;
   refreshAll(false);
@@ -5551,10 +5616,6 @@ window.addEventListener('resize', () => {
     const st = staleReports();
     if (st.length && nCfg().stale !== false) notify(st.length + ' report(s) have gone 14+ days without triage.', true);
   }, 12000);
-  if (gdAuto && gdToken) {
-    const last = profile._driveAt ? new Date(profile._driveAt).getTime() : 0;
-    if (Date.now() - last > 86400000) setTimeout(() => gdBackup(true), 8000);
-  }
 })();
 
 })();
