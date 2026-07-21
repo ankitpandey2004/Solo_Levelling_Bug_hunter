@@ -4831,6 +4831,23 @@ function renderTargets(){
         '<span><b>' + (t.noteLog || []).length + '</b>notes</span></div><div class="hint" style="margin-top:10px">Open ›</div></article>';
     }).join('') : '<div class="empty"><span class="e-ico">◎</span><h4>No programs here</h4><p>Add one with + Add target — it will be filed under ' + esc(tView.plat) + '.</p></div>';
     $$('#targetGrid [data-tid]').forEach(b => b.addEventListener('click', () => { tView = {lvl:2, plat:tView.plat, tid:b.dataset.tid}; renderTargets(); }));
+    if (list.length) {
+      det.innerHTML = '<div class="btn-row" style="margin-top:16px">' +
+        '<button class="btn btn-sm btn-danger" id="tgDelAll">🗑 Delete all programs here</button>' +
+        '<button class="btn btn-sm btn-danger" id="tgDelRep">🗑 Delete all reports here</button></div>';
+      $('#tgDelAll').addEventListener('click', () => confirmDialog('Delete programs',
+        'Remove all ' + list.length + ' programs under ' + tView.plat + '?', () => {
+          targets = targets.filter(t => t.platform !== tView.plat);
+          saveAll(); renderTargets(); fillSelects(); toast('Programs deleted', 'success');
+        }));
+      $('#tgDelRep').addEventListener('click', () => {
+        const n = reports.filter(r => r.platform === tView.plat).length;
+        confirmDialog('Delete reports', 'Permanently remove ' + n + ' reports under ' + tView.plat + '?', () => {
+          reports = reports.filter(r => r.platform !== tView.plat);
+          saveAll(); refreshAll(); toast(n + ' reports deleted', 'success');
+        });
+      });
+    }
     return;
   }
   const t = targets.find(x => x.id === tView.tid);
@@ -4910,10 +4927,10 @@ function cleanTitle(subject){
 }
 async function gmImportPast(){
   if (!gmToken) { toast('Connect Gmail first.', 'error'); return; }
-  setGm('Importing past reports…', true);
-  $('#gmResults').innerHTML = '<div class="hint">Reading your mailbox…</div>';
+  setGm('Reading mailbox…', true);
+  $('#gmResults').innerHTML = '<div class="hint">Searching…</div>';
   try {
-    const q = encodeURIComponent('(from:(' + GM_SENDERS + ') OR subject:(vulnerability OR "bug bounty" OR "security report")) newer_than:' + $('#gmDays').value + 'd');
+    const q = encodeURIComponent('(from:(' + GM_SENDERS + ') OR (in:sent (vulnerability OR XSS OR IDOR OR SSRF OR RCE OR bounty OR security))) newer_than:' + $('#gmDays').value + 'd');
     let all = [], page = '', guard = 0;
     while (guard++ < 20) {
       const l = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=500&q=' + q + (page ? '&pageToken=' + page : ''),
@@ -4925,45 +4942,60 @@ async function gmImportPast(){
       if (!jj.nextPageToken) break;
       page = jj.nextPageToken;
     }
-    if (!all.length) { $('#gmResults').innerHTML = '<div class="hint">No mail found in that window. Widen "Look back".</div>'; setGm('Nothing found', true); return; }
+    if (!all.length) { $('#gmResults').innerHTML = '<div class="hint">Nothing found. Widen "Look back".</div>'; setGm('Nothing found', true); return; }
     const found = {};
     let done = 0;
     for (const m of all) {
-      if (++done % 25 === 0) { setGm('Reading ' + done + ' / ' + all.length, true); $('#gmResults').innerHTML = '<div class="hint">Reading ' + done + ' of ' + all.length + '…</div>'; }
-      const d = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/' + m.id +
-        '?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date',
+      if (++done % 15 === 0) $('#gmResults').innerHTML = '<div class="hint">Reading ' + done + ' of ' + all.length + '…</div>';
+      const d = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/' + m.id + '?format=full',
         {headers:{Authorization:'Bearer ' + gmToken}});
       if (!d.ok) continue;
       const msg = await d.json(), hs = {};
       ((msg.payload && msg.payload.headers) || []).forEach(h => { hs[h.name.toLowerCase()] = h.value; });
-      const subj = hs.subject || '', from = (hs.from || '').replace(/.*<|>.*/g,'');
+      const subj = hs.subject || '', from = (hs.from || '').replace(/.*<|>.*/g,''), to = (hs.to || '').replace(/.*<|>.*/g,'');
+      const sent = (msg.labelIds || []).indexOf('SENT') > -1;
+      const parts = {text:'', html:'', att:[]};
+      walkParts(msg.payload, parts);
+      const body = parts.text || stripHtml(parts.html);
       const text = subj + ' ' + (msg.snippet || '');
       const refM = text.match(/#(\d{5,10})/);
-      const ref = refM ? refM[1] : '';
-      const key = ref || cleanTitle(subj).toLowerCase();
-      if (!key || key.length < 6) continue;
+      const key = refM ? refM[1] : cleanTitle(subj).toLowerCase();
+      if (!key || key.length < 5) continue;
       const st = parseStatus(text) || {};
-      const when = hs.date ? new Date(hs.date) : new Date();
-      const prev = found[key];
       const low = text.toLowerCase();
-      const guess = /critical|rce|takeover/.test(low) ? 'Critical' : /high|ssrf|sqli|idor/.test(low)
-        ? 'High' : /low|informational/.test(low) ? 'Low' : 'Medium';
-      const cand = {severity:guess, ref:ref, title:cleanTitle(subj), platform:platFromDomain(from), program:progFromMail(subj, from),
-        date:dayKey(when), status:st.status || 'Submitted', bounty:st.bounty || 0,
+      const sev = /critical|rce|takeover/.test(low) ? 'Critical' : /high|ssrf|sqli|idor/.test(low) ? 'High'
+        : /low|informational/.test(low) ? 'Low' : 'Medium';
+      const when = hs.date ? new Date(hs.date) : new Date();
+      const rec = {mid:m.id, pick:true, ref:refM ? refM[1] : '', title:cleanTitle(subj),
+        program:progFromMail(subj, sent ? to : from), platform:sent ? 'Self Hosted' : platFromDomain(from),
+        severity:sev, date:dayKey(when), status:st.status || (sent ? 'Submitted' : 'New'), bounty:st.bounty || 0,
         triagedAt:st.triaged ? dayKey(when) : '', resolvedAt:st.resolved ? dayKey(when) : '',
-        paidAt:st.paid ? dayKey(when) : '', tag:st.tag || ''};
-      if (!prev || new Date(cand.date) > new Date(prev.date)) found[key] = prev ? Object.assign({}, prev, cand, {date:prev.date}) : cand;
+        paidAt:st.paid ? dayKey(when) : '', body:(body || '').slice(0, 12000), att:parts.att, sent:sent};
+      const prev = found[key];
+      if (!prev) found[key] = rec;
+      else if (sent && !prev.sent) { rec.status = prev.status; rec.bounty = prev.bounty || rec.bounty; found[key] = rec; }
+      else if (new Date(rec.date) > new Date(prev.date)) {
+        prev.status = rec.status; prev.bounty = rec.bounty || prev.bounty;
+        prev.triagedAt = prev.triagedAt || rec.triagedAt;
+        prev.resolvedAt = prev.resolvedAt || rec.resolvedAt;
+        prev.paidAt = prev.paidAt || rec.paidAt;
+      }
     }
     gmMatches = Object.keys(found).map(k => found[k]).filter(c =>
       !reports.some(r => (c.ref && r.ref === c.ref) || r.title.toLowerCase() === c.title.toLowerCase()));
-    renderImport();
-    setGm('Found ' + gmMatches.length + ' importable report(s)', true);
+    const pm = {};
+    gmMatches.forEach(m => {
+      pm[m.program] = pm[m.program] || {name:m.program, orig:m.program, platform:m.platform, n:0, att:0, pick:true};
+      pm[m.program].n++; pm[m.program].att += (m.att || []).length;
+    });
+    impProgs = Object.keys(pm).map(k => pm[k]).sort((a, b) => b.n - a.n);
+    setGm(impProgs.length + ' programs · ' + gmMatches.length + ' reports found', true);
+    renderProgStage();
   } catch (e) {
     setGm('Import failed', false);
     $('#gmResults').innerHTML = '<div class="hint">Could not read the mailbox. Reconnect and retry.</div>';
   }
 }
-let impFilter = '';
 function renderImport(){
   if (!gmMatches.length) { $('#gmResults').innerHTML = '<div class="hint">Nothing new — everything in that window is already in your archive.</div>'; return; }
   gmMatches.forEach(m => { if (m.pick === undefined) m.pick = true; });
@@ -4973,12 +5005,12 @@ function renderImport(){
   const picked = gmMatches.filter(m => m.pick).length;
   const sev = ['Critical','High','Medium','Low','Info'];
   $('#gmResults').innerHTML =
-    '<div class="ach-cat">Review &amp; edit · ' + gmMatches.length + ' found · ' + picked + ' selected</div>' +
+    '<div class="ach-cat">Step 2 · reports — edit anything, then import</div>' +
     '<div class="btn-row" style="margin-bottom:10px">' +
       '<input id="impSearch" placeholder="Filter…" style="max-width:200px" value="' + esc(impFilter) + '">' +
       '<button class="btn btn-sm" id="impSel">Select all</button>' +
       '<button class="btn btn-sm" id="impNone">Select none</button></div>' +
-    '<div class="table-wrap"><table style="min-width:900px"><thead><tr><th></th><th>Title</th><th>Program</th><th>Platform</th><th>Severity</th><th>Status</th><th>Bounty</th><th>Date</th></tr></thead><tbody>' +
+    '<div class="table-wrap"><table style="min-width:900px"><thead><tr><th></th><th>Title</th><th>Program</th><th>Platform</th><th>Severity</th><th>Status</th><th>Bounty</th><th>Date</th><th>Body</th><th>Files</th></tr></thead><tbody>' +
     view.map(o => {
       const m = o.m, i = o.i;
       return '<tr><td><input type="checkbox" data-pk="' + i + '"' + (m.pick ? ' checked' : '') + ' style="width:auto"></td>' +
@@ -4991,10 +5023,15 @@ function renderImport(){
         '<td><select data-ed="status" data-i="' + i + '">' + STATUSES.map(x =>
           '<option' + (m.status === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></td>' +
         '<td><input type="number" data-ed="bounty" data-i="' + i + '" value="' + (m.bounty || 0) + '" style="width:92px"></td>' +
-        '<td><input type="date" data-ed="date" data-i="' + i + '" value="' + esc(m.date) + '"></td></tr>';
+        '<td><input type="date" data-ed="date" data-i="' + i + '" value="' + esc(m.date) + '"></td>' +
+        '<td class="mono">' + ((m.body || '').length ? Math.round((m.body || '').length / 100) / 10 + 'k' : '—') + '</td>' +
+        '<td class="mono">' + ((m.att || []).length || '—') + '</td></tr>';
     }).join('') + '</tbody></table></div>' +
     '<div class="btn-row" style="margin-top:12px"><button class="btn btn-primary" id="impAll">Import ' + picked + ' selected</button>' +
-      '<button class="btn btn-ghost" id="impNo">Dismiss</button></div>';
+      '<button class="btn" id="impBack">‹ Back to programs</button>' +
+      '<button class="btn btn-ghost" id="impNo">Dismiss</button></div>' +
+      '<label style="display:flex;gap:8px;align-items:center;margin-top:10px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)">' +
+      '<input type="checkbox" id="impAtt" style="width:auto" checked> Download attachments too (slower)</label>';
   $$('#gmResults [data-pk]').forEach(c => c.addEventListener('change', () => {
     gmMatches[Number(c.dataset.pk)].pick = c.checked; renderImport();
   }));
@@ -5007,62 +5044,45 @@ function renderImport(){
   $('#impSel').addEventListener('click', () => { gmMatches.forEach(m => m.pick = true); renderImport(); });
   $('#impNone').addEventListener('click', () => { gmMatches.forEach(m => m.pick = false); renderImport(); });
   $('#impAll').addEventListener('click', () => doImport());
+  if ($('#impBack')) $('#impBack').addEventListener('click', () => { impStage = 1; renderProgStage(); });
   $('#impNo').addEventListener('click', () => { gmMatches = []; impFilter = ''; $('#gmResults').innerHTML = ''; });
 }
-function doImport(only){
+async function doImport(only){
   const set = only === undefined ? gmMatches.filter(m => m.pick) : [gmMatches[only]];
   if (!set.length) { toast('Nothing selected.', 'warning'); return; }
+  const wantAtt = $('#impAtt') ? $('#impAtt').checked : false;
   let n = 0;
-  set.forEach(m => {
-    let t = targets.find(x => x.name.toLowerCase() === m.program.toLowerCase());
-    if (!t) {
-      t = migrateTarget({name:m.program, platform:m.platform, notes:'Auto-created from Gmail import'});
-      targets.push(t);
+  for (const m of set) {
+    let files = [];
+    if (wantAtt && (m.att || []).length) {
+      $('#gmResults').innerHTML = '<div class="hint">Downloading files for ' + esc(m.title) + '…</div>';
+      for (const a of m.att.slice(0, 6)) {
+        if (a.size > 6000000) continue;
+        const f = await fetchAtt(m.mid, a);
+        if (f) files.push(f);
+      }
     }
+    let t = targets.find(x => x.name.toLowerCase() === m.program.toLowerCase());
+    if (!t) { t = migrateTarget({name:m.program, platform:m.platform, notes:'Auto-created from Gmail import'}); targets.push(t); }
+    const body = m.body || '';
+    const si = body.search(/steps to reproduce|reproduction steps|how to reproduce|poc|proof of concept/i);
+    const ii = body.search(/\bimpact\b/i);
     reports.unshift(migrate({
-      title:m.title, target:t.name, platform:t.platform, status:m.status, bounty:m.bounty, severity:m.severity || 'Medium',
-      date:m.date, ref:m.ref, triagedAt:m.triagedAt, resolvedAt:m.resolvedAt, paidAt:m.paidAt,
-      tags:['imported'].concat(m.tag ? [m.tag] : []),
-      description:'Imported from Gmail. Original subject: ' + m.title,
-      steps:'Imported record — original steps were filed with the program.'
+      title:m.title, target:t.name, platform:t.platform, status:m.status, bounty:m.bounty,
+      severity:m.severity || 'Medium', date:m.date, ref:m.ref,
+      triagedAt:m.triagedAt, resolvedAt:m.resolvedAt, paidAt:m.paidAt,
+      tags:['imported'].concat(m.sent ? ['from-sent'] : []),
+      description:(si > 0 ? body.slice(0, si) : body) || ('Imported from Gmail. Subject: ' + m.title),
+      steps:si > 0 ? body.slice(si, ii > si ? ii : si + 4000) : 'See description — imported from email.',
+      impact:ii > 0 ? body.slice(ii, ii + 2500) : '',
+      notes:'Gmail id ' + m.mid, attachments:files
     }));
     n++;
-  });
+  }
   gmMatches = only === undefined ? gmMatches.filter(m => !m.pick) : (gmMatches.splice(only, 1), gmMatches);
   saveAll(); fillSelects(); refreshAll(true); renderImport();
-  toast(n + ' report(s) imported', 'success');
+  toast(n + ' report(s) imported with full body', 'success');
 }
-
-
-/* ===================== BULK ACTIONS + ACCOUNT PICKER ===================== */
-let bulkMode = false;
-function fillGmAccounts(){
-  const list = ($('#gmAccounts').value || '').split(',').map(e => e.trim()).filter(Boolean);
-  const sel = $('#gmAccount'), cur = sel.value;
-  sel.innerHTML = list.length ? list.map(e => '<option>' + esc(e) + '</option>').join('')
-    : '<option value="">— add addresses above —</option>';
-  if (list.indexOf(cur) > -1) sel.value = cur;
-}
-async function gmWhoAmI(){
-  if (!gmToken) return;
-  try {
-    const r = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {headers:{Authorization:'Bearer ' + gmToken}});
-    if (!r.ok) return;
-    const j = await r.json();
-    if (j.emailAddress) { setGm('Connected as ' + j.emailAddress, true); lsSet('sl_gm_current', j.emailAddress); }
-  } catch (e) {}
-}
-function toggleBulk(){
-  bulkMode = !bulkMode;
-  $('#bulkBar').style.display = bulkMode ? '' : 'none';
-  $('#bulkBtn').textContent = bulkMode ? '✕ Exit select' : '☑ Select mode';
-  const bs = $('#bulkStatus');
-  if (bs && bs.options.length < 2) bs.innerHTML = '<option value="">Set status…</option>' + STATUSES.map(x => '<option>' + x + '</option>').join('');
-  renderReports();
-}
-function bulkIds(){ return $$('#reportsArea [data-bulk]:checked').map(c => c.dataset.bulk); }
-function bulkCount(){ const n = bulkIds().length; $('#bulkCount').textContent = n + ' selected'; }
-
 /* ============================================================
    23. REFRESH + EVENTS + BOOT
    ============================================================ */
