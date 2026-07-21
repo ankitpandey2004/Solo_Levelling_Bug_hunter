@@ -747,9 +747,9 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
 }
 </style>
 </head>
-<body>
+<body class="gated">
 
-<div class="gate" id="authGate">
+<div class="gate show" id="authGate">
   <div class="gate-bg"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span><span class="grid"></span><span class="beam"></span></div>
   <button class="icon-btn gate-theme" id="gateTheme" title="Toggle theme">🌙</button>
   <div class="gate-box">
@@ -3370,7 +3370,7 @@ function fbWatchAuth(){
         else if (reports.length || hof.length) { fbPush(true); }
       }).catch(() => toast('Signed in, but the database refused the read — publish the rules in Firebase.', 'error'));
       renderSyncPanel();
-    } else if (lsGet('sl_gate_mode', '') !== 'local') {
+    } else if (!window.__localOnly) {
       gateShow();
       gateStatus('sign in to continue', false);
     }
@@ -3630,7 +3630,11 @@ function emailAllowed(email){
 }
 
 function gateShow(){ document.body.classList.add('gated'); $('#authGate').classList.add('show'); }
-function gateHide(){ document.body.classList.remove('gated'); $('#authGate').classList.remove('show'); }
+function gateHide(){
+  if (!fbUser && !window.__localOnly) return;
+  document.body.classList.remove('gated');
+  $('#authGate').classList.remove('show');
+}
 function gateError(msg){
   const el = $('#gateErr');
   if (!msg) { el.classList.remove('show'); el.textContent = ''; return; }
@@ -3736,7 +3740,8 @@ function gatePasswordReset(){
     });
 }
 function gateLocalOnly(){
-  lsSet('sl_gate_mode', 'local');
+  window.__localOnly = true;
+  localStorage.removeItem('sl_gate_mode');
   gateHide();
   toast('Local mode — data stays on this device until you sign in', 'warning');
   setSyncPill();
@@ -4787,6 +4792,25 @@ function renderTargets(){
         '<div class="hint" style="margin-top:10px">Open ›</div></article>';
     }).join('');
     $$('#targetGrid [data-plat]').forEach(b => b.addEventListener('click', () => { tView = {lvl:1, plat:b.dataset.plat, tid:null}; renderTargets(); }));
+    det.innerHTML = '<div class="btn-row" style="margin-top:18px">' +
+      '<button class="btn btn-sm btn-danger" id="tgAllProgs">🗑 Delete ALL programs (' + targets.length + ')</button>' +
+      '<button class="btn btn-sm btn-danger" id="tgAllReps">🗑 Delete ALL reports (' + reports.length + ')</button>' +
+      '<button class="btn btn-sm btn-danger" id="tgAllImp">🗑 Delete imported only (' + reports.filter(r => (r.tags||[]).indexOf('imported') > -1).length + ')</button></div>';
+    $('#tgAllProgs').addEventListener('click', () => confirmDialog('Delete all programs',
+      'Remove all ' + targets.length + ' programs across every platform? Reports keep their labels.', () => {
+        targets = []; saveAll(); renderTargets(); fillSelects(); toast('All programs deleted', 'success');
+      }));
+    $('#tgAllReps').addEventListener('click', () => confirmDialog('Delete all reports',
+      'Permanently remove all ' + reports.length + ' reports? This cannot be undone — export first if unsure.', () => {
+        reports = []; saveAll(); refreshAll(); toast('All reports deleted', 'success');
+      }));
+    $('#tgAllImp').addEventListener('click', () => {
+      const n = reports.filter(r => (r.tags||[]).indexOf('imported') > -1).length;
+      confirmDialog('Delete imported reports', 'Remove ' + n + ' reports tagged "imported"? Manually created ones stay.', () => {
+        reports = reports.filter(r => (r.tags||[]).indexOf('imported') === -1);
+        saveAll(); refreshAll(); toast(n + ' imported reports deleted', 'success');
+      });
+    });
     return;
   }
   if (tView.lvl === 1) {
@@ -4843,7 +4867,8 @@ function renderTargets(){
       '<button class="btn btn-sm" id="tdBook">📓 Notebook</button>' +
       '<button class="btn btn-sm" id="tdTimer">' + (timer ? '⏹ Stop timer' : '⏱ Start timer') + '</button>' +
       '<button class="btn btn-sm" id="tdEdit">Edit</button>' +
-      '<button class="btn btn-sm btn-danger" id="tdDel">Delete</button></div>' +
+      '<button class="btn btn-sm btn-danger" id="tdDelReps">🗑 Delete all ' + rs.length + ' reports</button>' +
+      '<button class="btn btn-sm btn-danger" id="tdDel">Delete program</button></div>' +
     (safeUrl(t.url) ? '<div class="vsec"><div class="k">URL</div><a href="' + esc(safeUrl(t.url)) + '" target="_blank" rel="noopener">' + esc(t.url) + '</a></div>' : '') +
     (t.notes ? '<div class="vsec"><div class="k">Notes</div><pre>' + esc(t.notes) + '</pre></div>' : '') +
     (rs.length ? '<div class="table-wrap"><table><thead><tr><th>Title</th><th>Type</th><th>Severity</th><th>Status</th><th>Bounty</th><th>Date</th><th></th></tr></thead><tbody>' +
@@ -4859,6 +4884,13 @@ function renderTargets(){
   $('#tdBook').addEventListener('click', () => { navigate('notes'); selectNotebook(t.id); });
   $('#tdTimer').addEventListener('click', () => { toggleTimer(t.id); renderTargets(); });
   $('#tdEdit').addEventListener('click', () => openTargetModal(t.id));
+  $('#tdDelReps').addEventListener('click', () => {
+    if (!rs.length) { toast('No reports to delete.', 'warning'); return; }
+    confirmDialog('Delete reports', 'Permanently remove all ' + rs.length + ' reports filed against ' + t.name + '?', () => {
+      reports = reports.filter(r => r.target !== t.name);
+      saveAll(); refreshAll(); toast(rs.length + ' reports deleted', 'success');
+    });
+  });
   $('#tdDel').addEventListener('click', () => confirmDialog('Delete target', 'Remove "' + t.name + '"? Reports keep their label.', () => {
     targets = targets.filter(x => x.id !== t.id);
     tView = {lvl:1, plat:t.platform, tid:null};
@@ -5416,6 +5448,7 @@ window.addEventListener('resize', () => {
   refreshAll(false);
   navigate('dashboard');
   updateSizeHint();
+  localStorage.removeItem('sl_gate_mode');
   setSyncPill();
   renderSources();
   renderSyncPanel();
