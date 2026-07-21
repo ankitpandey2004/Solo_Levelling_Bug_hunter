@@ -3648,6 +3648,21 @@ function gateDiag(){
 }
 function gateShow(){
   setTimeout(gateDiag, 50);
+  if (location.protocol === 'file:') {
+    const b = $('#gateErr');
+    if (b) {
+      b.innerHTML = '<b>You opened this file from your computer.</b><br>' +
+        'Google and Firebase sign-in only work over https, never from a file:// path.<br><br>' +
+        'Open your hosted copy instead:<br>' +
+        '<a href="https://ankitpandey2004.github.io/Solo_Levelling_Bug_hunter/" style="color:var(--cy)">' +
+        'ankitpandey2004.github.io/Solo_Levelling_Bug_hunter</a><br><br>' +
+        'Or click <b>Use this device only</b> below to browse offline without sync.';
+      b.classList.add('show');
+    }
+    const g = $('#gateGo'), gg = $('#gateGoogle');
+    if (g) { g.disabled = true; g.style.opacity = '.4'; }
+    if (gg) { gg.disabled = true; gg.style.opacity = '.4'; }
+  }
   document.body.classList.add('gated');
   const g = $('#authGate');
   if (g) { g.style.display = ''; g.classList.add('show'); }
@@ -5112,6 +5127,41 @@ async function doImport(only){
   saveAll(); fillSelects(); refreshAll(true); renderImport();
   toast(n + ' report(s) imported with full body', 'success');
 }
+
+/* ===================== RESTORED: account picker + bulk actions ===================== */
+let bulkMode = false;
+function fillGmAccounts(){
+  const src = $('#gmAccounts');
+  const sel = $('#gmAccount');
+  if (!src || !sel) return;
+  const list = (src.value || '').split(',').map(e => e.trim()).filter(Boolean);
+  const cur = sel.value;
+  sel.innerHTML = list.length ? list.map(e => '<option>' + esc(e) + '</option>').join('')
+    : '<option value="">— add addresses above —</option>';
+  if (list.indexOf(cur) > -1) sel.value = cur;
+}
+async function gmWhoAmI(){
+  if (!gmToken) return;
+  try {
+    const r = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile',
+      {headers:{Authorization:'Bearer ' + gmToken}});
+    if (!r.ok) return;
+    const j = await r.json();
+    if (j.emailAddress) { setGm('Connected as ' + j.emailAddress, true); lsSet('sl_gm_current', j.emailAddress); }
+  } catch (e) {}
+}
+function bulkIds(){ return $$('#reportsArea [data-bulk]:checked').map(c => c.dataset.bulk); }
+function bulkCount(){ const el = $('#bulkCount'); if (el) el.textContent = bulkIds().length + ' selected'; }
+function toggleBulk(){
+  bulkMode = !bulkMode;
+  const bar = $('#bulkBar'), btn = $('#bulkBtn'), bs = $('#bulkStatus');
+  if (bar) bar.style.display = bulkMode ? '' : 'none';
+  if (btn) btn.textContent = bulkMode ? '✕ Exit select' : '☑ Select mode';
+  if (bs && bs.options.length < 2)
+    bs.innerHTML = '<option value="">Set status…</option>' + STATUSES.map(x => '<option>' + x + '</option>').join('');
+  renderReports();
+}
+
 /* ============================================================
    23. REFRESH + EVENTS + BOOT
    ============================================================ */
