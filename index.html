@@ -136,6 +136,17 @@ body.light .rank-badge{color:#fff}
 .side-foot{padding:11px 16px;border-top:1px solid var(--border);
   font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--dim);display:flex;justify-content:space-between;gap:8px}
 
+body.sbmini .sidebar{width:62px}
+body.sbmini .main{margin-left:62px}
+body.sbmini .brand-name{font-size:14px;letter-spacing:.06em}
+body.sbmini .brand-sub,body.sbmini .rank-meta,body.sbmini .xp-label,body.sbmini .nav-sec,
+body.sbmini .nav-item span:not(.ico),body.sbmini .side-foot{display:none}
+body.sbmini .rank-card{margin:10px 7px;padding:8px}
+body.sbmini .rank-badge{width:40px;height:40px;flex:0 0 40px;font-size:18px}
+body.sbmini .nav-item{justify-content:center;padding:11px 0}
+body.sbmini #sbToggle{right:8px;top:10px}
+@media(max-width:768px){body.sbmini .sidebar{width:260px}body.sbmini .main{margin-left:0}
+  body.sbmini .brand-sub,body.sbmini .rank-meta,body.sbmini .nav-sec,body.sbmini .nav-item span{display:''}}
 /* ============================================================
    SHELL
    ============================================================ */
@@ -749,6 +760,7 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
   <div class="brand">
     <div class="brand-name" id="brandName">ARISE</div>
     <div class="brand-sub" id="brandSub">HUNTER SYSTEM v2</div>
+    <button class="icon-btn" id="sbToggle" title="Collapse sidebar" style="position:absolute;top:14px;right:12px;width:28px;height:28px;font-size:13px">‹</button>
   </div>
 
   <div class="rank-card">
@@ -765,7 +777,6 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
 
   <nav class="nav">
     <div class="nav-sec">Command</div>
-    <button class="nav-item" id="navSearchBtn"><span class="ico">⌕</span>Search everything<span class="tag">Ctrl K</span></button>
     <button class="nav-item active" data-page="dashboard"><span class="ico">◈</span>Dashboard</button>
     <button class="nav-item" data-page="reports"><span class="ico">🐞</span>Bug Reports<span class="tag" id="navReports">0</span></button>
     <button class="nav-item" data-page="kanban"><span class="ico">▤</span>Kanban Board</button>
@@ -955,8 +966,21 @@ Recon notes, endpoint maps, credentials layout, ideas to revisit, dead ends wort
     </div>
 
     <div class="sys vi">
-      <div class="sys-head"><h3>Where New Programs Get Announced</h3><span class="meta">open, then paste back here</span></div>
-      <div id="sourceList"></div>
+      <div class="sys-head"><h3>Discover New Programs</h3><span class="meta">date-filtered searches</span></div>
+      <div class="note">Builds Google queries restricted to a date window, so results are programs announced <b>recently</b> rather than whatever ranks highest. Open one, copy the names, then hit Paste / import above.</div>
+      <div class="filters" style="margin-bottom:12px">
+        <input id="dcKeyword" placeholder="Optional keyword — fintech, crypto, saas…">
+        <select id="dcWindow"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last year</option></select>
+        <select id="dcType">
+          <option value="new">Newly launched programs</option>
+          <option value="vdp">Self-hosted VDP / security pages</option>
+          <option value="sectxt">security.txt disclosures</option>
+          <option value="paying">Programs paying bounties</option>
+        </select>
+        <button class="btn btn-primary btn-sm" id="dcGo">🔍 Search Google</button>
+      </div>
+      <div class="btn-row" id="dcQuick"></div>
+      <div class="hint" id="dcPreview" style="margin-top:10px"></div>
     </div>
   </section>
 
@@ -3264,7 +3288,7 @@ const DEFAULT_FB = {
   messagingSenderId:'1083588084079',
   appId:'1:1083588084079:web:8a9f561f84ac8236cce89a'
 };
-let fbApp = null, fbUser = null, fbAuto = lsGet('sl_fb_auto', false);
+let fbApp = null, fbUser = null, fbAuto = lsGet('sl_fb_auto', true);
 function fbConfig(){
   const c = lsGet(K.firebase, null);
   return (c && c.apiKey) ? c : DEFAULT_FB;
@@ -3351,7 +3375,13 @@ function fbWatchAuth(){
     if (u) {
       gateHide();
       gateStatus('authenticated', true);
-      if (fbAuto) fbMerge();
+      lsSet('sl_last_email', u.email || '');
+      /* always reconcile with the cloud on sign-in — a fresh device has nothing locally */
+      firebase.database().ref(fbPath()).once('value').then(snap => {
+        const v = snap.val();
+        if (v) { mergeBundle(v); setFb('Restored from cloud ' + new Date().toLocaleTimeString(), true); }
+        else if (reports.length || hof.length) { fbPush(true); }
+      }).catch(() => toast('Signed in, but the database refused the read — publish the rules in Firebase.', 'error'));
       renderSyncPanel();
     } else if (lsGet('sl_gate_mode', '') !== 'local') {
       gateShow();
@@ -3797,10 +3827,38 @@ const RADAR_SOURCES = [
   {n:'security.txt lookups', d:'Any site exposing /.well-known/security.txt usually accepts reports.', u:'https://securitytxt.org/'},
   {n:'Openbugbounty', d:'Coordinated disclosure listings for self-hosted sites.', u:'https://www.openbugbounty.org/'}
 ];
+const DC_QUICK = [
+  {n:'bbradar.io', u:'https://bbradar.io/', d:'live feed of newly launched programs'},
+  {n:'Chaos launches', u:'https://chaos.projectdiscovery.io/', d:'program list with update timestamps'},
+  {n:'H1 newest', u:'https://hackerone.com/opportunities/all/search?sortField=launched_at&sortDirection=DESC', d:'sorted by launch date'},
+  {n:'Bugcrowd newest', u:'https://bugcrowd.com/engagements?sort_by=promoted&category=bug_bounty', d:'public engagements'},
+  {n:'Intigriti', u:'https://app.intigriti.com/researcher/programs', d:'EU launches'},
+  {n:'YesWeHack', u:'https://yeswehack.com/programs', d:'reward ranges'}
+];
+function dcQuery(){
+  const kw = ($('#dcKeyword').value || '').trim();
+  const days = Number($('#dcWindow').value);
+  const after = dayKey(new Date(Date.now() - days * 86400000));
+  const kinds = {
+    new:'("bug bounty program" OR "vulnerability disclosure program") ("now live" OR "launched" OR "we are excited to announce")',
+    vdp:'intitle:("security" OR "responsible disclosure") ("report a vulnerability" OR "submit a vulnerability") -site:hackerone.com -site:bugcrowd.com',
+    sectxt:'inurl:".well-known/security.txt" ("Contact:" OR "Policy:")',
+    paying:'("bug bounty" OR "bounty program") ("reward" OR "we pay" OR "bounty range") -site:reddit.com'
+  };
+  return kinds[$('#dcType').value] + (kw ? ' ' + kw : '') + ' after:' + after;
+}
 function renderSources(){
-  $('#sourceList').innerHTML = RADAR_SOURCES.map(s =>
-    '<div class="src-row"><span class="sname">' + esc(s.n) + '</span><span class="sdesc">' + esc(s.d) + '</span>' +
-    '<a class="btn btn-sm" href="' + esc(s.u) + '" target="_blank" rel="noopener">Open ↗</a></div>').join('');
+  const box = $('#dcQuick');
+  if (!box) return;
+  box.innerHTML = DC_QUICK.map(s => '<a class="btn btn-sm" href="' + esc(s.u) +
+    '" target="_blank" rel="noopener" title="' + esc(s.d) + '">' + esc(s.n) + ' ↗</a>').join('');
+  const upd = () => { $('#dcPreview').textContent = dcQuery(); };
+  ['#dcKeyword','#dcWindow','#dcType'].forEach(x => $(x).addEventListener('input', upd));
+  ['#dcWindow','#dcType'].forEach(x => $(x).addEventListener('change', upd));
+  upd();
+}
+function dcSearch(){
+  window.open('https://www.google.com/search?q=' + encodeURIComponent(dcQuery()), '_blank', 'noopener');
 }
 function freshness(d){
   const days = Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
@@ -3991,7 +4049,7 @@ async function fetchFeed(){
 /* ============================================================
    22D. SYNC EVERYWHERE
    ============================================================ */
-let syncAllOn = lsGet('sl_sync_all', false);
+let syncAllOn = lsGet('sl_sync_all', true);
 async function syncEverywhere(silent){
   const done = [];
   if (vaultHandle) { await vaultWrite(true); done.push('vault'); }
@@ -4748,7 +4806,13 @@ $('#themeToggle').addEventListener('click', toggleTheme);
 $('#themeToggle2').addEventListener('click', toggleTheme);
 $('#newReportBtn').addEventListener('click', () => openReportModal(null));
 $('#cmdkBtn').addEventListener('click', openCmdk);
-$('#navSearchBtn').addEventListener('click', openCmdk);
+$('#sbToggle').addEventListener('click', () => {
+  const on = !document.body.classList.contains('sbmini');
+  document.body.classList.toggle('sbmini', on);
+  lsSet('sl_sbmini', on);
+  $('#sbToggle').textContent = on ? '›' : '‹';
+  setTimeout(renderCharts, 320);
+});
 $('#timerPill').addEventListener('click', () => toggleTimer(null));
 $('#wTimer').addEventListener('click', () => toggleTimer(workTargetId));
 $('#wAssetAdd').addEventListener('click', addAssets);
@@ -4931,6 +4995,7 @@ $('#wNewReport').addEventListener('click', () => {
 });
 
 /* radar */
+$('#dcGo').addEventListener('click', dcSearch);
 $('#radarAddBtn').addEventListener('click', () => openRadarModal(null));
 $('#rdSave').addEventListener('click', saveRadar);
 $('#radarPasteBtn').addEventListener('click', () => openModal('pasteModal'));
@@ -5009,6 +5074,7 @@ window.addEventListener('resize', () => {
   loadGdForm();
   loadFbForm();
   loadNCfg();
+  document.body.classList.toggle('sbmini', lsGet('sl_sbmini', false));
   $('#gmAuto').checked = lsGet('sl_gm_auto', false);
   $('#gmApply').checked = lsGet('sl_gm_apply', false);
   $('#gmAccounts').value = lsGet('sl_gm_accounts', 'bugbountyankit@gmail.com, hackerankit2025@gmail.com, ankitfree2025@gmail.com');
