@@ -822,6 +822,8 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
   <header class="header">
     <button class="icon-btn" id="menuToggle" aria-label="Toggle navigation">☰</button>
     <h1 class="page-title" id="pageTitle">Dashboard</h1>
+    <button class="icon-btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶</button>
+    <button class="icon-btn" id="redoBtn" title="Redo (Ctrl+Y)" disabled>↷</button>
     <button class="timer-pill" id="timerPill" title="Hunt timer"><span>⏱</span><span id="timerTxt">00:00</span></button>
     <button class="kbd-btn" id="cmdkBtn"><span>⌕ Search</span><span class="kbd">Ctrl K</span></button>
     <span class="kbd-btn" id="syncPill" title="Cloud sync status" style="cursor:default"><span class="dot" id="syncDot"></span><span id="syncText" class="hide-sm">local</span></span>
@@ -1881,6 +1883,7 @@ const persist = debounce(async function () {
   updateSizeHint();
 }, 400);
 function saveAll(){
+  if (typeof histMark === 'function') histMark();
   persist();
   if (typeof fbAutoPush === 'function') fbAutoPush();
   if (typeof autoSyncAll === 'function') autoSyncAll();
@@ -3383,9 +3386,11 @@ function fbWatchAuth(){
       gateHide();
       gateStatus('authenticated', true);
       lsSet('sl_last_email', u.email || '');
-      /* cloud mirrors this device — restoring is a manual choice */
-      if (reports.length || hof.length || targets.length) fbPush(true);
-      else toast('Signed in. Click "Restore from cloud" in Settings if you need your data.', 'info');
+      firebase.database().ref(fbPath()).once('value').then(snap => {
+        const v = snap.val();
+        if (v) { mergeBundle(v); setFb('Restored from cloud ' + new Date().toLocaleTimeString(), true); }
+        else fbPush(true);
+      }).catch(() => toast('Signed in, but the database refused the read — publish the Firebase rules.', 'error'));
       renderSyncPanel();
     } else if (!window.__localOnly) {
       gateShow();
@@ -5220,6 +5225,48 @@ function restoreAll(){
   });
 }
 
+
+/* ===================== UNDO / REDO ===================== */
+let histU = [], histR = [], histPrev = null;
+function snapState(){ return JSON.stringify({r:reports, t:targets, h:hof, d:radar, x:trash}); }
+function histMark(){
+  const cur = snapState();
+  if (histPrev !== null && histPrev !== cur) { histU.push(histPrev); if (histU.length > 40) histU.shift(); histR = []; }
+  histPrev = cur;
+  histBtns();
+}
+function histBtns(){
+  const u = $('#undoBtn'), r = $('#redoBtn');
+  if (u) { u.disabled = !histU.length; u.style.opacity = histU.length ? '1' : '.35'; }
+  if (r) { r.disabled = !histR.length; r.style.opacity = histR.length ? '1' : '.35'; }
+}
+function histApply(str){
+  try {
+    const o = JSON.parse(str);
+    reports = (o.r || []).map(migrate);
+    targets = (o.t || []).map(migrateTarget);
+    hof = (o.h || []).map(migrateHof);
+    radar = (o.d || []).map(migrateRadar);
+    trash = o.x || [];
+    histPrev = snapState();
+    persist();
+    if (fbUser) fbPush(true);
+    fillSelects(); refreshAll(); renderTrash(); histBtns();
+  } catch (e) { toast('Could not apply that step.', 'error'); }
+}
+function doUndo(){
+  if (!histU.length) { toast('Nothing to undo.', 'info'); return; }
+  histR.push(snapState());
+  histApply(histU.pop());
+  toast('Undone', 'success');
+}
+function doRedo(){
+  if (!histR.length) { toast('Nothing to redo.', 'info'); return; }
+  histU.push(snapState());
+  histApply(histR.pop());
+  toast('Redone', 'success');
+}
+
 /* ============================================================
    23. REFRESH + EVENTS + BOOT
    ============================================================ */
@@ -5477,7 +5524,11 @@ $('#tgBack').addEventListener('click', () => {
 });
 function doLogout(){
   confirmDialog('Log out', 'Sign out of this device? Synced data stays safe in the cloud.', () => {
-    if (typeof firebase !== 'undefined' && firebase.auth && fbInit()) { fbPush(true); firebase.auth().signOut(); }
+    if (typeof firebase !== 'undefined' && firebase.auth && fbInit() && fbUser) {
+      firebase.database().ref(fbPath()).set(bundle())
+        .then(() => firebase.auth().signOut())
+        .catch(() => firebase.auth().signOut());
+    }
     lsSet('sl_gate_mode', '');
     setTimeout(() => location.reload(), 600);
   });
@@ -5502,6 +5553,8 @@ $('#radarClearBtn').addEventListener('click', () => {
 /* sync everywhere */
 $('#syncNowBtn').addEventListener('click', () => syncEverywhere(false));
 $('#restoreAllBtn').addEventListener('click', restoreAll);
+$('#undoBtn').addEventListener('click', doUndo);
+$('#redoBtn').addEventListener('click', doRedo);
 $('#emptyTrashBtn').addEventListener('click', () => confirmDialog('Empty recycle bin',
   'Permanently remove all ' + trash.length + ' item(s)? This cannot be undone.', () => {
     trash = []; saveAll(); renderTrash(); toast('Recycle bin emptied', 'success');
@@ -5547,6 +5600,8 @@ document.addEventListener('keydown', e => {
   if (k === 'k') { e.preventDefault(); openCmdk(); }
   else if (k === 'n') { e.preventDefault(); openReportModal(null); }
   else if (k === 'e') { e.preventDefault(); exportData(); }
+  else if (k === 'z' && !e.shiftKey) { e.preventDefault(); doUndo(); }
+  else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); doRedo(); }
   else if (k === 's') { e.preventDefault(); saveAll(); vaultWrite(false); }
 });
 
@@ -5584,6 +5639,8 @@ window.addEventListener('resize', () => {
   setVaultStatus();
   renderSnapshots();
   renderTrash();
+  histPrev = snapState();
+  histBtns();
   calcCvss();
   lastRank = rankFor(totalXP()).r;
   refreshAll(false);
