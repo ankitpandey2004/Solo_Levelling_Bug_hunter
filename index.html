@@ -792,6 +792,7 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
     <button class="nav-item" data-page="settings"><span class="ico">⚙</span>Settings</button>
   </nav>
 
+  <div style="padding:8px 12px;border-top:1px solid var(--border)"><button class="btn btn-sm btn-danger btn-block" id="logoutBtn" style="width:100%;justify-content:center">⏻ Log out</button></div>
   <div class="side-foot">
     <span id="storeMode">IndexedDB</span>
     <span id="vaultState">vault: off</span>
@@ -900,8 +901,9 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
   <!-- ==================== TARGETS ==================== -->
   <section class="page" id="page-targets">
     <div class="sys">
-      <div class="sys-head"><h3>Target Programs</h3><button class="btn btn-primary btn-sm" id="addTargetBtn">+ Add target</button></div>
+      <div class="sys-head"><h3 id="tgTitle">Platforms</h3><span class="meta" id="tgCrumb"></span><button class="btn btn-sm" id="tgBack" style="display:none">‹ Back</button><button class="btn btn-primary btn-sm" id="addTargetBtn">+ Add target</button></div>
       <div class="cards" id="targetGrid"></div>
+      <div id="targetDetail"></div>
     </div>
   </section>
 
@@ -1343,6 +1345,7 @@ Recon notes, endpoint maps, credentials layout, ideas to revisit, dead ends wort
       <div class="btn-row">
         <button class="btn" id="themeToggle2">◐ Toggle dark / light</button>
         <button class="btn" id="seedBtn">✦ Load demo data</button>
+        <button class="btn btn-danger" id="logoutBtn2">⏻ Log out</button>
       </div>
       <div class="hint">Demo data fills the dashboard with sample hunts so you can see every chart populated. It merges with what you already have.</div>
     </div>
@@ -1372,7 +1375,8 @@ Recon notes, endpoint maps, credentials layout, ideas to revisit, dead ends wort
         <div class="tabpane active" data-pane="core">
           <div class="field"><label>Bug title <span class="req">*</span></label><input id="fTitle" placeholder="Stored XSS in profile bio"></div>
           <div class="grid2">
-            <div class="field"><label>Target program <span class="req">*</span></label><select id="fTarget"></select></div>
+            <div class="field"><label>Platform <span class="req">*</span></label><select id="fPlatform"></select></div>
+          <div class="field"><label>Target program <span class="req">*</span></label><select id="fTarget"></select></div>
             <div class="field"><label>Severity <span class="req">*</span></label><select id="fSeverity"><option>Critical</option><option>High</option><option selected>Medium</option><option>Low</option><option>Info</option></select></div>
             <div class="field"><label>Vulnerability type <span class="req">*</span></label><select id="fType"></select></div>
             <div class="field"><label>Status <span class="req">*</span></label><select id="fStatus"><option selected>New</option><option>To Do</option><option>In Progress</option><option>Submitted</option><option>Accepted</option><option>Rejected</option></select></div>
@@ -1832,7 +1836,11 @@ const persist = debounce(async function () {
   if (vaultHandle) vaultWrite(true);
   updateSizeHint();
 }, 400);
-function saveAll(){ persist(); }
+function saveAll(){
+  persist();
+  if (typeof fbAutoPush === 'function') fbAutoPush();
+  if (typeof autoSyncAll === 'function') autoSyncAll();
+}
 
 async function requestPersistent(){
   if (navigator.storage && navigator.storage.persist) {
@@ -1884,7 +1892,7 @@ function migrate(r){
   return {
     id: r.id || uid(),
     title: r.title || 'Untitled finding',
-    target: r.target || 'Self Hosted',
+    target: r.target || '', platform: r.platform || 'Self Hosted',
     severity: SEVERITIES.indexOf(r.severity) > -1 ? r.severity : 'Medium',
     type: r.type || 'Other',
     status: STATUSES.indexOf(r.status) > -1 ? r.status : 'New',
@@ -2268,49 +2276,12 @@ function renderKanban(){
 /* ============================================================
    10. TARGETS
    ============================================================ */
-function renderTargets(){
-  const grid = $('#targetGrid');
-  if (!targets.length) {
-    grid.innerHTML = '<div class="empty"><span class="e-ico">◎</span><h4>No targets</h4><p>Add a program to route your reports.</p></div>';
-    return;
-  }
-  grid.innerHTML = targets.slice().sort((a, b) => {
-    const pr = {High:0, Medium:1, Low:2}, st = {Active:0, Paused:1, Archived:2};
-    return (st[a.state] - st[b.state]) || (pr[a.priority] - pr[b.priority]) || a.name.localeCompare(b.name);
-  }).map(t => {
-    const rs = reports.filter(r => r.target === t.name);
-    const url = safeUrl(t.url);
-    const notes = (t.noteLog || []).length;
-    return '<article class="tcard state-' + slug(t.state) + '"><h4>' + esc(t.name) + '</h4>' +
-      '<div style="margin:6px 0 2px"><span class="prio prio-' + slug(t.priority) + '">' + esc(t.priority) + '</span> ' +
-      '<span class="prio" style="color:var(--muted);border-color:var(--border)">' + esc(t.state) + '</span></div>' +
-      '<div class="plat">' + esc(t.platform || 'Other') + '</div>' +
-      (url ? '<p><a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url.replace(/^https?:\/\//,'')) + '</a></p>' : '') +
-      (t.notes ? '<p>' + esc(t.notes) + '</p>' : '') +
-      '<div class="nums"><span><b>' + rs.length + '</b>reports</span><span><b class="money">' + fmtMoney(sumBounty(rs)) + '</b>earned</span>' +
-      '<span><b>' + targetHours(t).toFixed(1) + '</b>hrs</span>' + '<span><b>' + notes + '</b>notes</span></div>' +
-      '<div class="btn-row" style="margin-top:13px">' +
-        '<button class="btn btn-sm btn-primary" data-work-target="' + esc(t.id) + '">✎ Notes' + (notes ? ' (' + notes + ')' : '') + '</button>' +
-        '<button class="btn btn-sm" data-edit-target="' + esc(t.id) + '">Edit</button>' +
-        '<button class="btn btn-sm btn-danger" data-del-target="' + esc(t.id) + '">Delete</button></div></article>';
-  }).join('');
-  $$('#targetGrid [data-del-target]').forEach(b => b.addEventListener('click', () => {
-    const t = targets.find(x => x.id === b.dataset.delTarget);
-    confirmDialog('Delete target', 'Remove "' + (t ? t.name : '') + '"? Existing reports keep their label.', () => {
-      targets = targets.filter(x => x.id !== b.dataset.delTarget);
-      saveAll(); renderTargets(); fillSelects();
-      toast('Target deleted', 'success');
-    });
-  }));
-  $$('#targetGrid [data-edit-target]').forEach(b => b.addEventListener('click', () => openTargetModal(b.dataset.editTarget)));
-  $$('#targetGrid [data-work-target]').forEach(b => b.addEventListener('click', () => openWorkspace(b.dataset.workTarget)));
-}
 function openTargetModal(id){
   const t = id ? targets.find(x => x.id === id) : null;
   $('#targetModalTitle').textContent = t ? 'Edit Target' : 'Add Target';
   $('#tId').value = t ? t.id : '';
   $('#tName').value = t ? t.name : '';
-  $('#tPlatform').value = t ? t.platform : 'Self Hosted';
+  $('#tPlatform').value = t ? t.platform : (tView.plat || 'Self Hosted');
   $('#tUrl').value = t ? t.url : '';
   $('#tNotes').value = t ? t.notes : '';
   $('#tScope').value = t ? (t.scope || '') : '';
@@ -2321,9 +2292,10 @@ function openTargetModal(id){
 function fillSelects(){
   const names = BASE_PROGRAMS.slice();
   targets.forEach(t => { if (names.indexOf(t.name) === -1) names.push(t.name); });
-  const ft = $('#fTarget'), cur = ft.value;
-  ft.innerHTML = names.map(n => '<option>' + esc(n) + '</option>').join('');
-  if (names.indexOf(cur) > -1) ft.value = cur;
+  const fp = $('#fPlatform'), pc = fp.value;
+  fp.innerHTML = BASE_PROGRAMS.map(n => '<option>' + esc(n) + '</option>').join('');
+  if (BASE_PROGRAMS.indexOf(pc) > -1) fp.value = pc;
+  fillPlatformTargets();
   const fl = $('#filterTarget'), fc = fl.value;
   fl.innerHTML = '<option value="">All targets</option>' + names.map(n => '<option>' + esc(n) + '</option>').join('');
   fl.value = names.indexOf(fc) > -1 ? fc : '';
@@ -2683,6 +2655,13 @@ function checkDuplicate(){
   $('#dupWarn').style.display = hit ? '' : 'none';
 }
 function openReportModal(id, preset){
+  if (!id && !targets.length) {
+    toast('Create a target program first — reports must belong to one.', 'warning');
+    navigate('targets');
+    tView = {lvl:0}; renderTargets();
+    setTimeout(() => openTargetModal(null), 400);
+    return;
+  }
   fillSelects();
   editingId = id || null;
   const f = id ? reports.find(r => r.id === id) : null;
@@ -2691,7 +2670,9 @@ function openReportModal(id, preset){
   $('#saveReportBtn').textContent = f ? 'Update report' : 'Save report';
   $('#fId').value = f ? f.id : '';
   $('#fTitle').value = f ? f.title : (p.title || '');
-  $('#fTarget').value = f ? f.target : 'Self Hosted';
+  $('#fPlatform').value = f ? (f.platform || 'Self Hosted') : (p.platform || 'Self Hosted');
+  fillPlatformTargets();
+  if (f) $('#fTarget').value = f.target; else if (p.target) $('#fTarget').value = p.target;
   $('#fSeverity').value = f ? f.severity : (p.severity || 'Medium');
   $('#fType').value = f ? f.type : (p.type || 'XSS');
   $('#fStatus').value = f ? f.status : 'New';
@@ -2720,6 +2701,7 @@ function openReportModal(id, preset){
   setTimeout(() => $('#fTitle').focus(), 60);
 }
 function saveReport(){
+  if (!$('#fTarget').value) { switchTab('core'); toast('Pick a target program — add one under this platform first.', 'error'); return; }
   const need = [['#fTitle','Bug title','core'], ['#fDesc','Description','detail'], ['#fSteps','Steps to reproduce','detail']];
   for (let i = 0; i < need.length; i++) {
     const el = $(need[i][0]);
@@ -2728,7 +2710,7 @@ function saveReport(){
   const prevXP = totalXP();
   const data = migrate({
     id: editingId || uid(),
-    title:$('#fTitle').value.trim(), target:$('#fTarget').value, severity:$('#fSeverity').value,
+    title:$('#fTitle').value.trim(), target:$('#fTarget').value, platform:$('#fPlatform').value, severity:$('#fSeverity').value,
     type:$('#fType').value, status:$('#fStatus').value, bounty:Number($('#fBounty').value) || 0,
     cvss:$('#fCvss').value, cwe:$('#fCwe').value.trim(), ref:$('#fRef').value.trim(),
     email:$('#fEmail').value.trim(), drive:$('#fDrive').value.trim(), poc:$('#fPoc').value.trim(),
@@ -4773,6 +4755,103 @@ function renderGoal(){
   $('#goalBar').style.width = goal ? Math.min(100, (got / goal) * 100) + '%' : '0';
 }
 
+
+/* ===================== TARGET DRILL-DOWN ===================== */
+let tView = {lvl:0, plat:null, tid:null};
+function platCounts(){
+  const m = {};
+  BASE_PROGRAMS.forEach(p => { m[p] = {t:0, r:0, b:0}; });
+  targets.forEach(t => { const p = m[t.platform] || (m[t.platform] = {t:0, r:0, b:0}); p.t++; });
+  reports.forEach(r => { const p = m[r.platform] || (m[r.platform] = {t:0, r:0, b:0}); p.r++; p.b += Number(r.bounty) || 0; });
+  return m;
+}
+function renderTargets(){
+  const grid = $('#targetGrid'), det = $('#targetDetail');
+  det.innerHTML = '';
+  $('#tgBack').style.display = tView.lvl ? '' : 'none';
+  if (tView.lvl === 0) {
+    $('#tgTitle').textContent = 'Platforms';
+    $('#tgCrumb').textContent = targets.length + ' programs · ' + reports.length + ' reports';
+    const m = platCounts();
+    grid.innerHTML = BASE_PROGRAMS.map(p => {
+      const c = m[p] || {t:0, r:0, b:0};
+      return '<article class="tcard" data-plat="' + esc(p) + '" style="cursor:pointer"><h4>' + esc(p) + '</h4>' +
+        '<div class="plat">' + c.t + ' program' + (c.t === 1 ? '' : 's') + '</div>' +
+        '<div class="nums"><span><b>' + c.r + '</b>reports</span><span><b class="money">' + fmtMoney(c.b) + '</b>earned</span></div>' +
+        '<div class="hint" style="margin-top:10px">Open ›</div></article>';
+    }).join('');
+    $$('#targetGrid [data-plat]').forEach(b => b.addEventListener('click', () => { tView = {lvl:1, plat:b.dataset.plat, tid:null}; renderTargets(); }));
+    return;
+  }
+  if (tView.lvl === 1) {
+    const list = targets.filter(t => t.platform === tView.plat);
+    $('#tgTitle').textContent = tView.plat;
+    $('#tgCrumb').textContent = list.length + ' programs under ' + tView.plat;
+    grid.innerHTML = list.length ? list.map(t => {
+      const rs = reports.filter(r => r.target === t.name);
+      return '<article class="tcard state-' + slug(t.state) + '" data-tid="' + esc(t.id) + '" style="cursor:pointer">' +
+        '<h4>' + esc(t.name) + '</h4><div style="margin:6px 0"><span class="prio prio-' + slug(t.priority) + '">' + esc(t.priority) + '</span></div>' +
+        (safeUrl(t.url) ? '<div class="plat">' + esc(t.url.replace(/^https?:\/\//,'').slice(0,36)) + '</div>' : '') +
+        '<div class="nums"><span><b>' + rs.length + '</b>reports</span><span><b class="money">' + fmtMoney(sumBounty(rs)) + '</b>earned</span>' +
+        '<span><b>' + (t.noteLog || []).length + '</b>notes</span></div><div class="hint" style="margin-top:10px">Open ›</div></article>';
+    }).join('') : '<div class="empty"><span class="e-ico">◎</span><h4>No programs here</h4><p>Add one with + Add target — it will be filed under ' + esc(tView.plat) + '.</p></div>';
+    $$('#targetGrid [data-tid]').forEach(b => b.addEventListener('click', () => { tView = {lvl:2, plat:tView.plat, tid:b.dataset.tid}; renderTargets(); }));
+    return;
+  }
+  const t = targets.find(x => x.id === tView.tid);
+  if (!t) { tView = {lvl:0}; renderTargets(); return; }
+  const rs = reports.filter(r => r.target === t.name).sort((a, b) => new Date(b.date) - new Date(a.date));
+  const acc = rs.filter(r => r.status === 'Accepted').length, rej = rs.filter(r => r.status === 'Rejected').length;
+  $('#tgTitle').textContent = t.name;
+  $('#tgCrumb').textContent = t.platform + ' · ' + t.priority + ' · ' + t.state;
+  grid.innerHTML = '';
+  det.innerHTML =
+    '<div class="stat-grid">' +
+      '<div class="stat-card c-vi" style="cursor:default"><div class="v">' + rs.length + '</div><div class="l">Reports</div></div>' +
+      '<div class="stat-card c-ok" style="cursor:default"><div class="v">' + fmtMoney(sumBounty(rs)) + '</div><div class="l">Earned</div></div>' +
+      '<div class="stat-card c-info" style="cursor:default"><div class="v">' + acc + '</div><div class="l">Accepted</div></div>' +
+      '<div class="stat-card c-crit" style="cursor:default"><div class="v">' + rej + '</div><div class="l">Rejected</div></div>' +
+      '<div class="stat-card c-med" style="cursor:default"><div class="v">' + targetHours(t).toFixed(1) + '</div><div class="l">Hours</div></div>' +
+      '<div class="stat-card c-gold" style="cursor:default"><div class="v">' + (t.assets || []).filter(a => a.s === 'untested').length + '</div><div class="l">Untested</div></div>' +
+    '</div>' +
+    '<div class="btn-row" style="margin:4px 0 16px">' +
+      '<button class="btn btn-primary btn-sm" id="tdNew">+ Report for ' + esc(t.name) + '</button>' +
+      '<button class="btn btn-sm" id="tdNotes">✎ Notes &amp; assets</button>' +
+      '<button class="btn btn-sm" id="tdBook">📓 Notebook</button>' +
+      '<button class="btn btn-sm" id="tdTimer">' + (timer ? '⏹ Stop timer' : '⏱ Start timer') + '</button>' +
+      '<button class="btn btn-sm" id="tdEdit">Edit</button>' +
+      '<button class="btn btn-sm btn-danger" id="tdDel">Delete</button></div>' +
+    (safeUrl(t.url) ? '<div class="vsec"><div class="k">URL</div><a href="' + esc(safeUrl(t.url)) + '" target="_blank" rel="noopener">' + esc(t.url) + '</a></div>' : '') +
+    (t.notes ? '<div class="vsec"><div class="k">Notes</div><pre>' + esc(t.notes) + '</pre></div>' : '') +
+    (rs.length ? '<div class="table-wrap"><table><thead><tr><th>Title</th><th>Type</th><th>Severity</th><th>Status</th><th>Bounty</th><th>Date</th><th></th></tr></thead><tbody>' +
+      rs.map(r => '<tr><td><strong>' + esc(r.title) + '</strong></td><td>' + esc(r.type) + '</td>' +
+        '<td><span class="badge b-' + slug(r.severity) + '">' + esc(r.severity) + '</span></td>' +
+        '<td><span class="badge b-' + slug(r.status) + '">' + esc(r.status) + '</span></td>' +
+        '<td class="mono money">' + fmtMoney(r.bounty) + '</td><td class="mono">' + fmtDate(r.date) + '</td>' +
+        '<td><button class="act" data-tdv="' + r.id + '">👁️</button></td></tr>').join('') + '</tbody></table></div>'
+      : '<div class="empty"><span class="e-ico">◇</span><h4>No reports yet</h4><p>File your first finding against ' + esc(t.name) + '.</p></div>');
+  $$('#targetDetail [data-tdv]').forEach(b => b.addEventListener('click', () => viewReport(b.dataset.tdv)));
+  $('#tdNew').addEventListener('click', () => openReportModal(null, {platform:t.platform, target:t.name}));
+  $('#tdNotes').addEventListener('click', () => openWorkspace(t.id));
+  $('#tdBook').addEventListener('click', () => { navigate('notes'); selectNotebook(t.id); });
+  $('#tdTimer').addEventListener('click', () => { toggleTimer(t.id); renderTargets(); });
+  $('#tdEdit').addEventListener('click', () => openTargetModal(t.id));
+  $('#tdDel').addEventListener('click', () => confirmDialog('Delete target', 'Remove "' + t.name + '"? Reports keep their label.', () => {
+    targets = targets.filter(x => x.id !== t.id);
+    tView = {lvl:1, plat:t.platform, tid:null};
+    saveAll(); renderTargets(); fillSelects(); toast('Target deleted', 'success');
+  }));
+}
+function fillPlatformTargets(){
+  const plat = $('#fPlatform').value;
+  const list = targets.filter(t => t.platform === plat);
+  const cur = $('#fTarget').value;
+  $('#fTarget').innerHTML = list.length
+    ? list.map(t => '<option>' + esc(t.name) + '</option>').join('')
+    : '<option value="">— no programs under ' + esc(plat) + ' —</option>';
+  if (list.some(t => t.name === cur)) $('#fTarget').value = cur;
+}
+
 /* ============================================================
    23. REFRESH + EVENTS + BOOT
    ============================================================ */
@@ -4879,7 +4958,7 @@ $('#saveTargetBtn').addEventListener('click', () => {
     url:$('#tUrl').value.trim(), notes:$('#tNotes').value.trim(), scope:$('#tScope').value.trim(),
     priority:$('#tPriority').value, state:$('#tState').value,
     noteLog: prev ? prev.noteLog : [], added: prev ? prev.added : new Date().toISOString()});
-  if (id) targets[targets.findIndex(t => t.id === id)] = data; else targets.push(data);
+  if (id) targets[targets.findIndex(t => t.id === id)] = data; else { targets.push(data); tView = {lvl:1, plat:data.platform, tid:null}; }
   saveAll(); renderTargets(); fillSelects(); closeModal('targetModal');
   toast(id ? 'Target updated' : 'Target added', 'success');
 });
@@ -4996,6 +5075,20 @@ $('#wNewReport').addEventListener('click', () => {
 
 /* radar */
 $('#dcGo').addEventListener('click', dcSearch);
+$('#fPlatform').addEventListener('change', fillPlatformTargets);
+$('#tgBack').addEventListener('click', () => {
+  tView = tView.lvl === 2 ? {lvl:1, plat:tView.plat, tid:null} : {lvl:0, plat:null, tid:null};
+  renderTargets();
+});
+function doLogout(){
+  confirmDialog('Log out', 'Sign out of this device? Synced data stays safe in the cloud.', () => {
+    if (typeof firebase !== 'undefined' && firebase.auth && fbInit()) { fbPush(true); firebase.auth().signOut(); }
+    lsSet('sl_gate_mode', '');
+    setTimeout(() => location.reload(), 600);
+  });
+}
+$('#logoutBtn').addEventListener('click', doLogout);
+$('#logoutBtn2').addEventListener('click', doLogout);
 $('#radarAddBtn').addEventListener('click', () => openRadarModal(null));
 $('#rdSave').addEventListener('click', saveRadar);
 $('#radarPasteBtn').addEventListener('click', () => openModal('pasteModal'));
