@@ -1276,7 +1276,7 @@ Recon notes, endpoint maps, credentials layout, ideas to revisit, dead ends wort
       </div>
     </div>
 
-    <div class="sys gold">
+    <div class="sys gold" style="display:none">
       <div class="sys-head"><h3>Recycle Bin</h3><span class="meta" id="trashMeta"></span></div>
       <div class="note">Deleted reports and programs land here and stay until you remove them. They never sync back on their own — only <b>Backup all</b> brings everything back, including these.</div>
       <div class="btn-row" style="margin-bottom:12px">
@@ -1885,6 +1885,7 @@ const persist = debounce(async function () {
 function saveAll(){
   if (typeof histMark === 'function') histMark();
   persist();
+  if (typeof fbUser !== 'undefined' && fbUser && typeof fbAutoPush === 'function') fbAutoPush();
   if (typeof fbAutoPush === 'function') fbAutoPush();
   if (typeof autoSyncAll === 'function') autoSyncAll();
 }
@@ -2788,10 +2789,9 @@ function deleteReport(id){
   const r = reports.find(x => x.id === id);
   if (!r) return;
   confirmDialog('Delete report', 'Permanently remove "' + r.title + '" and its attachments?', () => {
-    trash.push({id:r.id, kind:'report', at:new Date().toISOString(), label:r.title, data:r});
     reports = reports.filter(x => x.id !== id);
-    saveAll(); refreshAll(); renderTrash();
-    toast('Moved to recycle bin', 'success');
+    saveAll(); refreshAll();
+    toast('Deleted permanently', 'success');
   });
 }
 
@@ -3400,10 +3400,25 @@ function fbWatchAuth(){
 }
 function fbPush(silent){
   if (!fbInit()) return;
-  if (!fbUser) { toast('Sign in first so your data is stored under your account.', 'warning'); return; }
+  if (!fbUser) { if (!silent) toast('Sign in first.', 'warning'); return; }
+  const pill = $('#syncText'), dot = $('#syncDot');
+  if (pill) pill.textContent = 'saving…';
   firebase.database().ref(fbPath()).set(bundle())
-    .then(() => { setFb('Synced ' + new Date().toLocaleTimeString(), true); if (!silent) toast('Pushed to Firebase', 'success'); })
-    .catch(() => toast('Push failed — database rules may block writes.', 'error'));
+    .then(() => {
+      setFb('Synced ' + new Date().toLocaleTimeString(), true);
+      if (pill) pill.textContent = 'synced';
+      if (dot) dot.className = 'dot on';
+      profile._cloudAt = new Date().toISOString();
+      if (!silent) toast('Saved to cloud', 'success');
+    })
+    .catch(err => {
+      const m = (err && err.message) || 'unknown error';
+      setFb('SYNC FAILED — ' + m, false);
+      if (pill) pill.textContent = 'FAILED';
+      if (dot) dot.className = 'dot';
+      window.__lastAuthErr = m;
+      toast('Cloud save failed: ' + m.slice(0, 90), 'error');
+    });
 }
 function fbPull(silent){
   if (!fbInit()) return;
@@ -3471,7 +3486,7 @@ function fbMerge(){
     setFb('Merged ' + new Date().toLocaleTimeString(), true);
   }).catch(() => toast('Merge failed — check the database rules.', 'error'));
 }
-const fbAutoPush = debounce(() => { if (fbAuto && fbUser) fbPush(true); }, 1500);
+const fbAutoPush = debounce(() => { if (fbUser) fbPush(true); }, 400);
 
 /* ============================================================
    21. COMMAND PALETTE
@@ -4953,7 +4968,6 @@ function renderTargets(){
     });
   });
   $('#tdDel').addEventListener('click', () => confirmDialog('Delete target', 'Remove "' + t.name + '"? Reports keep their label.', () => {
-    trash.push({id:t.id, kind:'target', at:new Date().toISOString(), label:t.name, data:t});
     targets = targets.filter(x => x.id !== t.id);
     tView = {lvl:1, plat:t.platform, tid:null};
     saveAll(); renderTargets(); fillSelects(); toast('Target deleted', 'success');
@@ -5324,10 +5338,9 @@ $('#bulkDel').addEventListener('click', () => {
   const ids = bulkIds();
   if (!ids.length) { toast('Nothing selected.', 'warning'); return; }
   confirmDialog('Delete reports', 'Permanently remove ' + ids.length + ' report(s)?', () => {
-    reports.forEach(r => { if (ids.indexOf(r.id) > -1) trash.push({id:r.id, kind:'report', at:new Date().toISOString(), label:r.title, data:r}); });
     reports = reports.filter(r => ids.indexOf(r.id) === -1);
-    saveAll(); refreshAll(); renderTrash();
-    toast(ids.length + ' moved to recycle bin', 'success');
+    saveAll(); refreshAll();
+    toast(ids.length + ' deleted permanently', 'success');
   });
 });
 $('#bulkApply').addEventListener('click', () => {
@@ -5606,7 +5619,11 @@ document.addEventListener('keydown', e => {
 });
 
 setInterval(() => saveAll(), 30000);
-window.addEventListener('beforeunload', () => { lsSet(K.targets, targets); lsSet(K.profile, profile); });
+window.addEventListener('beforeunload', () => {
+  lsSet(K.targets, targets); lsSet(K.profile, profile);
+  try { if (fbUser && typeof firebase !== 'undefined') firebase.database().ref(fbPath()).set(bundle()); } catch (e) {}
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden && fbUser) fbPush(true); });
 let rt;
 window.addEventListener('resize', () => {
   clearTimeout(rt);
