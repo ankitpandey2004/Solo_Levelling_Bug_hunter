@@ -1208,6 +1208,7 @@ Recon notes, endpoint maps, credentials layout, ideas to revisit, dead ends wort
       </label>
       <div class="btn-row"><button class="btn btn-primary" id="syncNowBtn">⇅ Sync all now</button></div>
       <div style="margin-top:14px">
+        <div class="kv"><span class="kk">Signed in as</span><span id="sAcct">—</span></div>
         <div class="kv"><span class="kk">Firebase</span><span id="sFb">—</span></div>
         <div class="kv"><span class="kk">Vault file</span><span id="sVault">—</span></div>
         <div class="kv"><span class="kk">Google Drive</span><span id="sDrive">—</span></div>
@@ -1936,6 +1937,11 @@ function renderSnapshots(){
 /* ============================================================
    3. MIGRATION & LOAD
    ============================================================ */
+function toArr(v){
+  if (Array.isArray(v)) return v.filter(x => x !== null && x !== undefined);
+  if (v && typeof v === 'object') return Object.keys(v).map(k => v[k]).filter(x => x !== null && x !== undefined);
+  return [];
+}
 function migrate(r){
   return {
     id: r.id || uid(),
@@ -3150,11 +3156,11 @@ function exportPortfolio(){
 
 function importBundle(o){
   if (!o || typeof o !== 'object') { toast('That file is not a valid backup.', 'error'); return; }
-  if (Array.isArray(o.reports)) reports = o.reports.map(migrate);
-  if (Array.isArray(o.targets)) targets = o.targets.map(migrateTarget);
-  if (Array.isArray(o.hof)) hof = o.hof.map(migrateHof);
-  if (Array.isArray(o.radar)) radar = o.radar.map(migrateRadar);
-  if (Array.isArray(o.trash)) trash = o.trash;
+  if (o.reports) reports = toArr(o.reports).map(migrate);
+  if (o.targets) targets = toArr(o.targets).map(migrateTarget);
+  if (o.hof) hof = toArr(o.hof).map(migrateHof);
+  if (o.radar) radar = toArr(o.radar).map(migrateRadar);
+  trash = [];
   if (o.profile) { profile = o.profile; loadProfileForm(); }
   if (o.achievements) achState = o.achievements;
   if (o.theme) applyTheme(o.theme);
@@ -3301,6 +3307,7 @@ const DEFAULT_FB = {
   messagingSenderId:'1083588084079',
   appId:'1:1083588084079:web:8a9f561f84ac8236cce89a'
 };
+let fbReady = false;
 let fbApp = null, fbUser = null, fbAuto = lsGet('sl_fb_auto', true);
 function fbConfig(){
   const c = lsGet(K.firebase, null);
@@ -3376,7 +3383,8 @@ function fbWatchAuth(){
   firebase.auth().onAuthStateChanged(u => {
     fbUser = u || null;
     const el = $('#fbUser');
-    if (el) el.textContent = u ? u.email : 'signed out';
+    if (el) el.textContent = u ? (u.email + ' · uid ' + String(u.uid).slice(0, 10)) : 'signed out';
+    if (u) { const sp = $('#syncPill'); if (sp) sp.title = 'Account ' + u.email + '\nUID ' + u.uid; }
     setFb(u ? 'Signed in as ' + u.email : 'Signed out', !!u);
     gateReady = true;
     if (u && !emailAllowed(u.email)) {
@@ -3386,11 +3394,23 @@ function fbWatchAuth(){
       gateHide();
       gateStatus('authenticated', true);
       lsSet('sl_last_email', u.email || '');
+      trash = [];
       firebase.database().ref(fbPath()).once('value').then(snap => {
         const v = snap.val();
-        if (v) { mergeBundle(v); setFb('Restored from cloud ' + new Date().toLocaleTimeString(), true); }
-        else fbPush(true);
-      }).catch(() => toast('Signed in, but the database refused the read — publish the Firebase rules.', 'error'));
+        fbReady = true;
+        if (v) {
+          try { mergeBundle(v); } catch (e) { toast('Merge error: ' + e.message, 'error'); }
+          setFb('Restored ' + toArr(v.reports).length + ' reports from cloud', true);
+          toast('Loaded ' + toArr(v.reports).length + ' reports from your account', 'success');
+        } else {
+          setFb('Cloud empty for this account — pushing local data', true);
+          toast('This account has no cloud data yet.', 'warning');
+          fbPush(true);
+        }
+      }).catch(err => {
+        fbReady = true;
+        toast('Cloud read failed: ' + ((err && err.message) || ''), 'error');
+      });
       renderSyncPanel();
     } else if (!window.__localOnly) {
       gateShow();
@@ -3401,6 +3421,7 @@ function fbWatchAuth(){
 function fbPush(silent){
   if (!fbInit()) return;
   if (!fbUser) { if (!silent) toast('Sign in first.', 'warning'); return; }
+  if (!fbReady) { return; }
   const pill = $('#syncText'), dot = $('#syncDot');
   if (pill) pill.textContent = 'saving…';
   firebase.database().ref(fbPath()).set(bundle())
@@ -3431,16 +3452,21 @@ function fbPull(silent){
   }).catch(() => toast('Pull failed — check the database rules.', 'error'));
 }
 function mergeBundle(o){
+  if (o && typeof o === 'object') {
+    o = {reports:toArr(o.reports), targets:toArr(o.targets), hof:toArr(o.hof),
+         radar:toArr(o.radar), trash:toArr(o.trash), profile:o.profile || {},
+         achievements:o.achievements || {}, theme:o.theme};
+  }
   const dead = {};
   trash.forEach(t => { dead[t.id] = 1; });
-  if (o && Array.isArray(o.reports)) o.reports = o.reports.filter(r => !dead[r.id]);
-  if (o && Array.isArray(o.targets)) o.targets = o.targets.filter(t => !dead[t.id]);
+  o.reports = o.reports.filter(r => r && !dead[r.id]);
+  o.targets = o.targets.filter(t => t && !dead[t.id]);
   if (!o || typeof o !== 'object') { toast('Nothing usable in the cloud copy.', 'error'); return; }
   const stamp = r => new Date(r.updated || r.created || 0).getTime();
   let added = 0, updated = 0;
   const byId = {};
   reports.forEach(r => { byId[r.id] = r; });
-  (o.reports || []).map(migrate).forEach(r => {
+  toArr(o.reports).map(migrate).forEach(r => {
     const mine = byId[r.id];
     if (!mine) { byId[r.id] = r; added++; }
     else if (stamp(r) > stamp(mine)) { byId[r.id] = r; updated++; }
@@ -3449,12 +3475,12 @@ function mergeBundle(o){
 
   const hIds = {};
   hof.forEach(h => { hIds[h.id] = h; });
-  (o.hof || []).map(migrateHof).forEach(h => { if (!hIds[h.id]) { hIds[h.id] = h; added++; } });
+  toArr(o.hof).map(migrateHof).forEach(h => { if (!hIds[h.id]) { hIds[h.id] = h; added++; } });
   hof = Object.keys(hIds).map(k => hIds[k]);
 
   const tIds = {};
   targets.forEach(t => { tIds[t.id] = t; });
-  (o.targets || []).map(migrateTarget).forEach(t => {
+  toArr(o.targets).map(migrateTarget).forEach(t => {
     const mine = tIds[t.id];
     if (!mine) { tIds[t.id] = t; added++; }
     else if ((t.noteLog || []).length > (mine.noteLog || []).length) { tIds[t.id] = t; updated++; }
@@ -3462,7 +3488,7 @@ function mergeBundle(o){
   targets = Object.keys(tIds).map(k => tIds[k]);
   const rIds = {};
   radar.forEach(r => { rIds[r.id] = r; });
-  (o.radar || []).map(migrateRadar).forEach(r => { if (!rIds[r.id]) { rIds[r.id] = r; added++; } });
+  toArr(o.radar).map(migrateRadar).forEach(r => { if (!rIds[r.id]) { rIds[r.id] = r; added++; } });
   radar = Object.keys(rIds).map(k => rIds[k]);
 
   Object.keys(o.achievements || {}).forEach(k => {
@@ -4134,6 +4160,7 @@ function renderSyncPanel(){
   const fb = $('#sFb'); if (!fb) return;
   fb.textContent = fbUser ? 'signed in · ' + fbUser.email : 'not signed in';
   $('#sVault').textContent = vaultHandle ? (vaultHandle.name || 'linked') : 'not linked';
+  const ac = $('#sAcct'); if (ac) ac.textContent = fbUser ? fbUser.email + ' (uid ' + String(fbUser.uid).slice(0,12) + '…)' : 'not signed in';
   $('#sDrive').textContent = gdToken ? (profile._driveAt ? 'last ' + new Date(profile._driveAt).toLocaleString() : 'connected') : 'not connected';
   const m = $('#syncMeta'); if (m) m.textContent = syncAllOn ? 'auto-sync on' : 'manual';
   const t = $('#syncAllToggle'); if (t) t.checked = syncAllOn;
