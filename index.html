@@ -549,7 +549,23 @@ td.mono,th.mono{font-family:'JetBrains Mono',monospace}
    ============================================================ */
 body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
 .gate{position:fixed;inset:0;z-index:500;display:none;place-items:center;padding:20px;overflow-y:auto;
-  background:radial-gradient(ellipse 70% 50% at 50% 0%,var(--glow),var(--void) 70%)}
+  background:var(--void)}
+.gate-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.gate-bg .orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;animation:drift 18s ease-in-out infinite}
+.gate-bg .o1{width:420px;height:420px;background:var(--vi);top:-120px;left:-90px}
+.gate-bg .o2{width:380px;height:380px;background:var(--cy);bottom:-130px;right:-80px;animation-delay:-6s}
+.gate-bg .o3{width:280px;height:280px;background:var(--gold);top:40%;left:55%;opacity:.22;animation-delay:-11s}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(60px,50px) scale(1.15)}66%{transform:translate(-40px,30px) scale(.92)}}
+.gate-bg .grid{position:absolute;inset:-50%;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:46px 46px;transform:perspective(420px) rotateX(62deg);animation:flow 14s linear infinite;opacity:.55}
+@keyframes flow{to{transform:perspective(420px) rotateX(62deg) translateY(46px)}}
+.gate-bg .beam{position:absolute;left:0;right:0;height:180px;animation:sweep 9s linear infinite;
+  background:linear-gradient(180deg,transparent,var(--glow),transparent)}
+@keyframes sweep{0%{top:-190px}100%{top:110%}}
+.gate-box{backdrop-filter:blur(8px);background:color-mix(in srgb,var(--panel) 88%,transparent)}
+.gate-theme{position:absolute;top:16px;right:16px;z-index:2}
+.rank-art{width:52px;height:52px;flex:0 0 52px}
+.rank-art svg{width:100%;height:100%;display:block;filter:drop-shadow(0 0 12px var(--glow))}
 .gate.show{display:grid}
 .gate-box{position:relative;width:100%;max-width:420px;background:var(--panel);border:1px solid var(--border);
   padding:34px 30px;box-shadow:0 0 70px rgba(0,0,0,.6);animation:pop .35s cubic-bezier(.2,.9,.25,1)}
@@ -734,12 +750,14 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
 <body>
 
 <div class="gate" id="authGate">
+  <div class="gate-bg"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span><span class="grid"></span><span class="beam"></span></div>
+  <button class="icon-btn gate-theme" id="gateTheme" title="Toggle theme">🌙</button>
   <div class="gate-box">
     <div class="gate-logo">ARISE</div>
     <div class="gate-sub">HUNTER SYSTEM · ACCESS CONTROL</div>
     <div class="gate-tabs"><button class="gate-tab active" data-gtab="in">Sign in</button></div>
     <div class="gate-err" id="gateErr"></div>
-    <div class="field"><label>Email</label><input type="email" id="gateEmail" autocomplete="username" placeholder="you@example.com"></div>
+    <div class="field"><label>Email</label><input type="email" id="gateEmail" autocomplete="username" placeholder="your email"></div>
     <div class="field"><label>Password</label><input type="password" id="gatePass" autocomplete="current-password" placeholder="your password"></div>
     <button class="btn btn-primary btn-block" id="gateGo" style="width:100%;justify-content:center">Enter the gate</button>
     <div class="gate-foot" style="margin-top:10px;font-size:11.5px">Accounts are created by you in the Firebase console. This page only signs in.</div>
@@ -765,7 +783,7 @@ body.gated .sidebar,body.gated .main,body.gated .toasts{display:none}
 
   <div class="rank-card">
     <div class="rank-row">
-      <div class="rank-badge" id="rankBadge">E</div>
+      <div class="rank-art" id="rankArt"></div>
       <div class="rank-meta">
         <div class="rank-title" id="rankTitle">E-Rank Hunter</div>
         <div class="rank-sub" id="rankHandle">@hunter</div>
@@ -1202,7 +1220,8 @@ Recon notes, endpoint maps, credentials layout, ideas to revisit, dead ends wort
       </div>
       <div class="btn-row" style="margin-bottom:12px">
         <button class="btn btn-primary" id="gmConnect">🔗 Connect Gmail</button>
-        <button class="btn" id="gmScan">📥 Scan inbox now</button>
+        <button class="btn" id="gmScan">📥 Scan for updates</button>
+        <button class="btn btn-gold" id="gmImport">📚 Import past reports</button>
         <button class="btn" id="gmSwitch">↻ Switch account</button>
         <label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="gmAuto" style="width:auto"> Scan on every load</label>
         <label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="gmApply" style="width:auto"> Apply matches automatically</label>
@@ -2014,8 +2033,7 @@ function renderRank(){
   const xp = totalXP(), rank = rankFor(xp);
   const span = rank.max === Infinity ? Math.max(xp - rank.min, 1) : rank.max - rank.min;
   const pct = rank.max === Infinity ? 100 : Math.min(100, ((xp - rank.min) / span) * 100);
-  $('#rankBadge').textContent = rank.r;
-  $('#rankBadge').classList.toggle('pulse', rank.r === 'S');
+  if (typeof rankEmblem === 'function') $('#rankArt').innerHTML = rankEmblem(rank.r);
   $('#rankTitle').textContent = rank.r + '-Rank · ' + rank.title;
   $('#rankHandle').textContent = profile.handle || (profile.name ? '@' + slug(profile.name) : '@hunter');
   $('#xpFill').style.width = pct + '%';
@@ -4852,6 +4870,152 @@ function fillPlatformTargets(){
   if (list.some(t => t.name === cur)) $('#fTarget').value = cur;
 }
 
+
+/* ===================== GMAIL BULK IMPORT ===================== */
+function platFromDomain(from){
+  const f = (from || '').toLowerCase();
+  if (f.indexOf('hackerone') > -1) return 'HackerOne';
+  if (f.indexOf('bugcrowd') > -1) return 'Bugcrowd';
+  if (f.indexOf('intigriti') > -1) return 'Intigriti';
+  if (f.indexOf('yeswehack') > -1) return 'YesWeHack';
+  return 'Self Hosted';
+}
+function progFromMail(subject, from){
+  const b = subject.match(/[\[\(]([^\]\)]{2,40})[\]\)]/);
+  if (b && !/^re:|^fwd:/i.test(b[1])) return b[1].trim();
+  const d = (from || '').split('@')[1] || '';
+  const root = d.replace(/^(mail|no-?reply|notifications?|support)\./,'').split('.')[0];
+  return root ? root.charAt(0).toUpperCase() + root.slice(1) : 'Unknown';
+}
+function cleanTitle(subject){
+  return subject.replace(/^(re|fwd|fw)\s*:\s*/gi,'').replace(/[\[\(][^\]\)]*[\]\)]/g,'')
+    .replace(/#\d{4,10}/g,'').replace(/\s+/g,' ').trim().slice(0, 110) || 'Imported report';
+}
+async function gmImportPast(){
+  if (!gmToken) { toast('Connect Gmail first.', 'error'); return; }
+  setGm('Importing past reports…', true);
+  $('#gmResults').innerHTML = '<div class="hint">Reading your mailbox…</div>';
+  try {
+    const q = encodeURIComponent('(from:(' + GM_SENDERS + ') OR subject:(vulnerability OR "bug bounty" OR "security report")) newer_than:' + $('#gmDays').value + 'd');
+    let all = [], page = '', guard = 0;
+    while (guard++ < 20) {
+      const l = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=500&q=' + q + (page ? '&pageToken=' + page : ''),
+        {headers:{Authorization:'Bearer ' + gmToken}});
+      if (l.status === 401) { gmToken = ''; localStorage.removeItem('sl_gmail_token'); setGm('Token expired — reconnect', false); return; }
+      const jj = await l.json();
+      if (jj.messages) all = all.concat(jj.messages);
+      $('#gmResults').innerHTML = '<div class="hint">Found ' + all.length + ' messages…</div>';
+      if (!jj.nextPageToken) break;
+      page = jj.nextPageToken;
+    }
+    if (!all.length) { $('#gmResults').innerHTML = '<div class="hint">No mail found in that window. Widen "Look back".</div>'; setGm('Nothing found', true); return; }
+    const found = {};
+    let done = 0;
+    for (const m of all) {
+      if (++done % 25 === 0) { setGm('Reading ' + done + ' / ' + all.length, true); $('#gmResults').innerHTML = '<div class="hint">Reading ' + done + ' of ' + all.length + '…</div>'; }
+      const d = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/' + m.id +
+        '?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date',
+        {headers:{Authorization:'Bearer ' + gmToken}});
+      if (!d.ok) continue;
+      const msg = await d.json(), hs = {};
+      ((msg.payload && msg.payload.headers) || []).forEach(h => { hs[h.name.toLowerCase()] = h.value; });
+      const subj = hs.subject || '', from = (hs.from || '').replace(/.*<|>.*/g,'');
+      const text = subj + ' ' + (msg.snippet || '');
+      const refM = text.match(/#(\d{5,10})/);
+      const ref = refM ? refM[1] : '';
+      const key = ref || cleanTitle(subj).toLowerCase();
+      if (!key || key.length < 6) continue;
+      const st = parseStatus(text) || {};
+      const when = hs.date ? new Date(hs.date) : new Date();
+      const prev = found[key];
+      const low = text.toLowerCase();
+      const guess = /critical|rce|takeover/.test(low) ? 'Critical' : /high|ssrf|sqli|idor/.test(low)
+        ? 'High' : /low|informational/.test(low) ? 'Low' : 'Medium';
+      const cand = {severity:guess, ref:ref, title:cleanTitle(subj), platform:platFromDomain(from), program:progFromMail(subj, from),
+        date:dayKey(when), status:st.status || 'Submitted', bounty:st.bounty || 0,
+        triagedAt:st.triaged ? dayKey(when) : '', resolvedAt:st.resolved ? dayKey(when) : '',
+        paidAt:st.paid ? dayKey(when) : '', tag:st.tag || ''};
+      if (!prev || new Date(cand.date) > new Date(prev.date)) found[key] = prev ? Object.assign({}, prev, cand, {date:prev.date}) : cand;
+    }
+    gmMatches = Object.keys(found).map(k => found[k]).filter(c =>
+      !reports.some(r => (c.ref && r.ref === c.ref) || r.title.toLowerCase() === c.title.toLowerCase()));
+    renderImport();
+    setGm('Found ' + gmMatches.length + ' importable report(s)', true);
+  } catch (e) {
+    setGm('Import failed', false);
+    $('#gmResults').innerHTML = '<div class="hint">Could not read the mailbox. Reconnect and retry.</div>';
+  }
+}
+let impFilter = '';
+function renderImport(){
+  if (!gmMatches.length) { $('#gmResults').innerHTML = '<div class="hint">Nothing new — everything in that window is already in your archive.</div>'; return; }
+  gmMatches.forEach(m => { if (m.pick === undefined) m.pick = true; });
+  const q = impFilter.toLowerCase();
+  const view = gmMatches.map((m, i) => ({m:m, i:i}))
+    .filter(o => !q || (o.m.title + ' ' + o.m.program + ' ' + o.m.status).toLowerCase().indexOf(q) > -1);
+  const picked = gmMatches.filter(m => m.pick).length;
+  const sev = ['Critical','High','Medium','Low','Info'];
+  $('#gmResults').innerHTML =
+    '<div class="ach-cat">Review &amp; edit · ' + gmMatches.length + ' found · ' + picked + ' selected</div>' +
+    '<div class="btn-row" style="margin-bottom:10px">' +
+      '<input id="impSearch" placeholder="Filter…" style="max-width:200px" value="' + esc(impFilter) + '">' +
+      '<button class="btn btn-sm" id="impSel">Select all</button>' +
+      '<button class="btn btn-sm" id="impNone">Select none</button></div>' +
+    '<div class="table-wrap"><table style="min-width:900px"><thead><tr><th></th><th>Title</th><th>Program</th><th>Platform</th><th>Severity</th><th>Status</th><th>Bounty</th><th>Date</th></tr></thead><tbody>' +
+    view.map(o => {
+      const m = o.m, i = o.i;
+      return '<tr><td><input type="checkbox" data-pk="' + i + '"' + (m.pick ? ' checked' : '') + ' style="width:auto"></td>' +
+        '<td><input data-ed="title" data-i="' + i + '" value="' + esc(m.title) + '" style="min-width:230px"></td>' +
+        '<td><input data-ed="program" data-i="' + i + '" value="' + esc(m.program) + '" style="min-width:110px"></td>' +
+        '<td><select data-ed="platform" data-i="' + i + '">' + BASE_PROGRAMS.map(p =>
+          '<option' + (m.platform === p ? ' selected' : '') + '>' + esc(p) + '</option>').join('') + '</select></td>' +
+        '<td><select data-ed="severity" data-i="' + i + '">' + sev.map(x =>
+          '<option' + ((m.severity || 'Medium') === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></td>' +
+        '<td><select data-ed="status" data-i="' + i + '">' + STATUSES.map(x =>
+          '<option' + (m.status === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></td>' +
+        '<td><input type="number" data-ed="bounty" data-i="' + i + '" value="' + (m.bounty || 0) + '" style="width:92px"></td>' +
+        '<td><input type="date" data-ed="date" data-i="' + i + '" value="' + esc(m.date) + '"></td></tr>';
+    }).join('') + '</tbody></table></div>' +
+    '<div class="btn-row" style="margin-top:12px"><button class="btn btn-primary" id="impAll">Import ' + picked + ' selected</button>' +
+      '<button class="btn btn-ghost" id="impNo">Dismiss</button></div>';
+  $$('#gmResults [data-pk]').forEach(c => c.addEventListener('change', () => {
+    gmMatches[Number(c.dataset.pk)].pick = c.checked; renderImport();
+  }));
+  $$('#gmResults [data-ed]').forEach(el => el.addEventListener('change', () => {
+    const m = gmMatches[Number(el.dataset.i)];
+    m[el.dataset.ed] = el.type === 'number' ? Number(el.value) || 0 : el.value;
+  }));
+  const sb = $('#impSearch');
+  sb.addEventListener('input', debounce(() => { impFilter = sb.value; renderImport(); setTimeout(() => $('#impSearch').focus(), 30); }, 300));
+  $('#impSel').addEventListener('click', () => { gmMatches.forEach(m => m.pick = true); renderImport(); });
+  $('#impNone').addEventListener('click', () => { gmMatches.forEach(m => m.pick = false); renderImport(); });
+  $('#impAll').addEventListener('click', () => doImport());
+  $('#impNo').addEventListener('click', () => { gmMatches = []; impFilter = ''; $('#gmResults').innerHTML = ''; });
+}
+function doImport(only){
+  const set = only === undefined ? gmMatches.filter(m => m.pick) : [gmMatches[only]];
+  if (!set.length) { toast('Nothing selected.', 'warning'); return; }
+  let n = 0;
+  set.forEach(m => {
+    let t = targets.find(x => x.name.toLowerCase() === m.program.toLowerCase());
+    if (!t) {
+      t = migrateTarget({name:m.program, platform:m.platform, notes:'Auto-created from Gmail import'});
+      targets.push(t);
+    }
+    reports.unshift(migrate({
+      title:m.title, target:t.name, platform:t.platform, status:m.status, bounty:m.bounty, severity:m.severity || 'Medium',
+      date:m.date, ref:m.ref, triagedAt:m.triagedAt, resolvedAt:m.resolvedAt, paidAt:m.paidAt,
+      tags:['imported'].concat(m.tag ? [m.tag] : []),
+      description:'Imported from Gmail. Original subject: ' + m.title,
+      steps:'Imported record — original steps were filed with the program.'
+    }));
+    n++;
+  });
+  gmMatches = only === undefined ? gmMatches.filter(m => !m.pick) : (gmMatches.splice(only, 1), gmMatches);
+  saveAll(); fillSelects(); refreshAll(true); renderImport();
+  toast(n + ' report(s) imported', 'success');
+}
+
 /* ============================================================
    23. REFRESH + EVENTS + BOOT
    ============================================================ */
@@ -4899,6 +5063,7 @@ $('#nSave').addEventListener('click', saveNCfg);
 $('#gmConnect').addEventListener('click', () => gmConnect(''));
 $('#gmSwitch').addEventListener('click', () => gmConnect('select_account'));
 $('#gmScan').addEventListener('click', gmScan);
+$('#gmImport').addEventListener('click', gmImportPast);
 $('#gmAuto').addEventListener('change', e => lsSet('sl_gm_auto', e.target.checked));
 $('#gmApply').addEventListener('change', e => lsSet('sl_gm_apply', e.target.checked));
 $('#gmAccounts').addEventListener('change', e => lsSet('sl_gm_accounts', e.target.value));
@@ -5048,6 +5213,10 @@ $$('[data-afilter]').forEach(b => b.addEventListener('click', () => {
 /* auth gate */
 $$('.gate-tab').forEach(t => t.addEventListener('click', () => setGateTab(t.dataset.gtab)));
 $('#gateGo').addEventListener('click', gateSubmit);
+$('#gateTheme').addEventListener('click', () => {
+  toggleTheme();
+  $('#gateTheme').textContent = document.body.classList.contains('light') ? '🌙' : '☀️';
+});
 $('#gateGoogle').addEventListener('click', gateGoogle);
 $('#gateReset').addEventListener('click', gatePasswordReset);
 $('#gateLocal').addEventListener('click', gateLocalOnly);
@@ -5162,17 +5331,21 @@ window.addEventListener('resize', () => {
 (async function boot(){
   await loadAll();
   applyTheme(lsGet(K.theme, 'dark'));
+  $('#gateTheme').textContent = document.body.classList.contains('light') ? '🌙' : '☀️';
   fillSelects();
   loadProfileForm();
   loadGdForm();
   loadFbForm();
   loadNCfg();
   document.body.classList.toggle('sbmini', lsGet('sl_sbmini', false));
-  $('#gmAuto').checked = lsGet('sl_gm_auto', false);
-  $('#gmApply').checked = lsGet('sl_gm_apply', false);
+  $('#gmAuto').checked = lsGet('sl_gm_auto', true);
+  $('#gmApply').checked = lsGet('sl_gm_apply', true);
   $('#gmAccounts').value = lsGet('sl_gm_accounts', 'bugbountyankit@gmail.com, hackerankit2025@gmail.com, ankitfree2025@gmail.com');
   setGm(gmToken ? 'Connected — ready to scan' : 'Gmail not connected', !!gmToken);
-  if (gmToken && lsGet('sl_gm_auto', false)) setTimeout(gmScan, 6000);
+  if (gmToken && lsGet('sl_gm_auto', true)) {
+    setTimeout(gmScan, 5000);
+    setInterval(() => { if (gmToken && $('#gmAuto').checked) gmScan(); }, 1800000);
+  }
   timerTick();
   setInterval(timerTick, 1000);
   setVaultStatus();
@@ -5185,7 +5358,7 @@ window.addEventListener('resize', () => {
   setSyncPill();
   renderSources();
   renderSyncPanel();
-  $('#gateEmail').value = lsGet('sl_last_email', '') || KNOWN_EMAIL;
+  $('#gateEmail').value = '';
   $('#fbAllowed').value = allowList().join(', ');
   if (!lsGet('sl_allowed_emails', null)) lsSet('sl_allowed_emails', [KNOWN_EMAIL]);
   if (typeof firebase !== 'undefined' && firebase.auth && fbConfig().apiKey) {
